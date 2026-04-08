@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>PELINDO INVENTORY - TERMINAL 2</title>
+    
+    <!-- Meta Tags PWA -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#004a99">
+    <link rel="manifest" href="manifest.json">
+
+    <!-- Pustaka Eksternal -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://unpkg.com/docx@7.1.0/build/index.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap');
+        :root { --pelindo-blue-dark: #004a99; --pelindo-blue-light: #00aeef; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f8fafc; text-transform: uppercase; overscroll-behavior-y: contain; }
+        .pelindo-gradient { background: linear-gradient(135deg, var(--pelindo-blue-dark) 0%, #003366 100%); }
+        .form-input { @apply mt-1 block w-full rounded-2xl border-gray-200 shadow-sm focus:border-[#00aeef] focus:ring-[#00aeef] text-sm p-3 border transition-all uppercase font-bold; }
+        
+        /* Tombol Unduh Bulat */
+        .btn-download-container { @apply flex flex-col items-center gap-2 transition-all duration-300; }
+        .btn-circle { 
+            @apply w-14 h-14 rounded-full flex items-center justify-center text-white shadow-lg transition-all duration-300 active:scale-90 hover:-translate-y-1 hover:shadow-xl;
+        }
+        .btn-circle i { @apply w-6 h-6; }
+        
+        .color-excel { @apply bg-emerald-600 ring-4 ring-emerald-50; }
+        .color-word { @apply bg-blue-600 ring-4 ring-blue-50; }
+        .color-pdf { @apply bg-red-600 ring-4 ring-red-50; }
+
+        .card-pelindo { @apply bg-white rounded-[2.5rem] shadow-xl shadow-slate-200/50 border border-slate-100 overflow-hidden; }
+        .status-badge { @apply px-3 py-1 rounded-full text-[9px] font-black border uppercase tracking-wider; }
+        .loading-overlay { @apply fixed inset-0 bg-white/95 backdrop-blur-md z-[300] flex flex-col items-center justify-center; }
+        .safe-top { padding-top: env(safe-area-inset-top); }
+    </style>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, deleteDoc, updateDoc, doc, onSnapshot, query } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Global variables provided by the environment
+        const firebaseConfig = JSON.parse(__firebase_config);
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'pelindo-inventory-v3';
+        
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // Expose Firebase tools to window object
+        window.cloud = { 
+            db, auth, appId, collection, addDoc, deleteDoc, 
+            updateDoc, doc, onSnapshot, query, 
+            signInAnonymously, signInWithCustomToken 
+        };
+    </script>
+</head>
+<body class="min-h-screen text-slate-800 pb-20 text-left">
+
+    <!-- Screen Loading -->
+    <div id="loader" class="loading-overlay">
+        <div class="w-12 h-12 border-4 border-[#00aeef] border-t-transparent rounded-full animate-spin mb-4"></div>
+        <p class="font-black text-[10px] tracking-widest text-[#004a99] uppercase">Menghubungkan Database...</p>
+    </div>
+
+    <!-- Header / Nav -->
+    <nav class="pelindo-gradient text-white shadow-2xl sticky top-0 z-[100] safe-top">
+        <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+            <div class="flex items-center gap-4">
+                <div class="bg-white p-1 rounded-xl shadow-inner flex items-center justify-center overflow-hidden w-10 h-10">
+                    <img src="logo pelindo.jpg" alt="Logo" class="w-full h-full object-contain" onerror="this.src='https://placehold.co/100x100?text=PELINDO'">
+                </div>
+                <div>
+                    <h1 class="text-base font-extrabold tracking-wider leading-tight">PT PELINDO PETIKEMAS</h1>
+                    <p class="text-[8px] opacity-70 font-black tracking-widest uppercase">TEKNIK TERMINAL 2 MAKASSAR</p>
+                </div>
+            </div>
+            <div id="connStat" class="hidden sm:flex items-center gap-2 bg-white/10 px-3 py-1 rounded-full border border-white/20">
+                <div class="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse"></div>
+                <span class="text-[8px] font-black uppercase tracking-widest">SISTEM AKTIF</span>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+        <div class="mb-12 text-left">
+            <h2 class="text-2xl font-black text-slate-900 tracking-tight uppercase">MANAJEMEN INVENTARIS</h2>
+            <div class="h-1.5 w-20 bg-[#00aeef] mt-1 rounded-full mb-10"></div>
+            
+            <div class="flex flex-col lg:flex-row gap-8 items-end justify-between">
+                <!-- Data Import -->
+                <div class="w-full lg:max-w-md bg-white p-5 rounded-[2.5rem] border border-dashed border-slate-200 flex items-center justify-between shadow-sm">
+                    <div class="flex items-center gap-3">
+                        <div class="bg-green-50 p-3 rounded-2xl text-green-600"><i data-lucide="file-up" class="w-5 h-5"></i></div>
+                        <div>
+                            <h4 class="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">IMPOR DATA</h4>
+                            <p class="text-[8px] font-bold text-slate-400 normal-case leading-tight">FILE EXCEL (.XLSX)</p>
+                        </div>
+                    </div>
+                    <label class="cursor-pointer bg-slate-100 hover:bg-slate-200 text-slate-600 px-6 py-3 rounded-full text-[9px] font-black uppercase transition-all active:scale-95 border border-slate-200">
+                        PILIH FILE
+                        <input type="file" id="excelInput" accept=".xlsx, .xls" class="hidden" onchange="importFromExcel(event)">
+                    </label>
+                </div>
+
+                <!-- Bagian Unduh Laporan -->
+                <div class="bg-white/50 p-6 rounded-[2.5rem] border border-slate-100 shadow-sm flex flex-col items-center gap-5">
+                    <h4 class="text-[10px] font-black text-[#004a99] uppercase tracking-[0.2em] leading-none">UNDUH LAPORAN</h4>
+                    <div class="flex gap-8 px-4">
+                        <div class="btn-download-container">
+                            <button onclick="exportToExcel()" class="btn-circle color-excel"><i data-lucide="sheet"></i></button>
+                            <span class="text-[8px] font-black text-slate-400 tracking-widest uppercase">EXCEL</span>
+                        </div>
+                        <div class="btn-download-container">
+                            <button onclick="exportToWord()" class="btn-circle color-word"><i data-lucide="file-text"></i></button>
+                            <span class="text-[8px] font-black text-slate-400 tracking-widest uppercase">WORD</span>
+                        </div>
+                        <div class="btn-download-container">
+                            <button onclick="exportToPDF()" class="btn-circle color-pdf"><i data-lucide="file-type-2"></i></button>
+                            <span class="text-[8px] font-black text-slate-400 tracking-widest uppercase">PDF</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stok Teratas -->
+        <div id="stockSummary" class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-10 font-bold text-left"></div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            <!-- Form Pendaftaran -->
+            <div class="lg:col-span-4 text-left">
+                <div class="card-pelindo">
+                    <div class="bg-slate-50 px-6 py-5 border-b">
+                        <h3 class="font-black text-slate-800 text-[10px] tracking-widest uppercase flex items-center gap-2 leading-none">
+                            <i data-lucide="plus-circle" class="w-4 h-4 text-[#004a99]"></i> INPUT BARANG
+                        </h3>
+                    </div>
+                    <form id="inventoryForm" class="p-6 space-y-5">
+                        <!-- Kategori (Baris 1) -->
+                        <div>
+                            <label class="block text-[9px] font-black text-slate-400 mb-1 tracking-widest uppercase">KATEGORI BARANG</label>
+                            <select id="itemCategory" required class="form-input bg-white font-bold">
+                                <option value="ELECTRICAL">ELECTRICAL</option>
+                                <option value="PLUMBING">PLUMBING</option>
+                                <option value="MECHANICAL">MECHANICAL</option>
+                            </select>
+                        </div>
+                        
+                        <!-- Nama & Tipe (Baris 2) -->
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-[9px] font-black text-slate-400 mb-1 tracking-widest uppercase">NAMA BARANG</label>
+                                <input type="text" id="itemName" required class="form-input" placeholder="...">
+                            </div>
+                            <div>
+                                <label class="block text-[9px] font-black text-slate-400 mb-1 tracking-widest uppercase">TIPE (OPT)</label>
+                                <input type="text" id="itemType" class="form-input" placeholder="...">
+                            </div>
+                        </div>
+
+                        <!-- QTY & Satuan (Baris 3) -->
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-[9px] font-black text-slate-400 mb-1 tracking-widest uppercase">JUMLAH</label>
+                                <input type="number" id="itemQty" required min="1" class="form-input" placeholder="0">
+                            </div>
+                            <div>
+                                <label class="block text-[9px] font-black text-slate-400 mb-1 tracking-widest uppercase">SATUAN</label>
+                                <select id="itemUnit" class="form-input bg-white font-bold text-xs">
+                                    <option value="PCS">PCS</option><option value="ROL">ROL</option><option value="MTR">MTR</option>
+                                    <option value="DOS">DOS</option><option value="UNT">UNT</option><option value="BKS">BKS</option>
+                                    <option value="BTG">BTG</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <!-- Status (Baris 4) -->
+                        <div>
+                            <label class="block text-[9px] font-black text-slate-400 mb-1 tracking-widest uppercase">ALIRAN BARANG</label>
+                            <select id="itemStatus" onchange="handleStatusChange()" class="form-input bg-slate-50 text-[#004a99]">
+                                <option value="MASUK">BARANG MASUK</option>
+                                <option value="KELUAR">BARANG KELUAR</option>
+                            </select>
+                        </div>
+
+                        <div id="outOptions" class="hidden p-4 bg-blue-50/50 rounded-[2rem] border border-blue-100 border-dashed space-y-4">
+                            <div class="flex gap-2">
+                                <label class="flex-1 cursor-pointer"><input type="radio" name="subStatus" value="DIPINJAM" onchange="handleSubStatusChange()" checked class="peer hidden"><div class="text-center py-2 bg-white rounded-full border border-transparent peer-checked:border-[#00aeef] peer-checked:text-[#00aeef] font-black text-[9px] shadow-sm uppercase tracking-tighter">PINJAM</div></label>
+                                <label class="flex-1 cursor-pointer"><input type="radio" name="subStatus" value="INSTALASI" onchange="handleSubStatusChange()" class="peer hidden"><div class="text-center py-2 bg-white rounded-full border border-transparent peer-checked:border-[#00aeef] peer-checked:text-[#00aeef] font-black text-[9px] shadow-sm uppercase tracking-tighter">INSTAL</div></label>
+                            </div>
+                            <div id="borrowFields" class="space-y-3">
+                                <input type="text" id="borrowerName" class="form-input" placeholder="NAMA PEMINJAM">
+                                <input type="date" id="borrowDate" class="form-input">
+                            </div>
+                            <div id="installFields" class="hidden space-y-3">
+                                <input type="text" id="installTech" class="form-input" placeholder="PELAKSANA">
+                                <input type="text" id="installLoc" class="form-input" placeholder="LOKASI">
+                            </div>
+                            <textarea id="extraNote" class="form-input" placeholder="CATATAN..."></textarea>
+                        </div>
+                        <button type="submit" id="submitBtn" class="w-full bg-[#004a99] text-white py-4 rounded-full font-black text-[10px] uppercase shadow-lg active:scale-95 transition-all tracking-widest">SIMPAN DATA</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Tabel Riwayat -->
+            <div class="lg:col-span-8 text-left">
+                <div class="card-pelindo">
+                    <div class="px-6 py-5 border-b flex justify-between items-center bg-white sticky top-0 z-10">
+                        <h3 class="font-black text-[10px] uppercase tracking-widest leading-none">RIWAYAT AKTIVITAS</h3>
+                        <span id="counter" class="text-[9px] bg-[#004a99] text-white px-3 py-1.5 rounded-full font-black uppercase">0 ENTRI</span>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left">
+                            <thead class="bg-slate-50 text-[8px] font-black text-slate-400 uppercase tracking-widest">
+                                <tr>
+                                    <th class="px-6 py-4">INFO</th>
+                                    <th class="px-6 py-4">BARANG</th>
+                                    <th class="px-6 py-4 text-right">AKSI</th>
+                                </tr>
+                            </thead>
+                            <tbody id="inventoryList" class="text-[10px] divide-y divide-slate-100 font-bold uppercase tracking-tight"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Konfirmasi Kembali -->
+    <div id="returnModal" class="hidden fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-[200] flex items-end sm:items-center justify-center p-4">
+        <div class="bg-white rounded-t-[2.5rem] sm:rounded-[2.5rem] p-8 max-w-sm w-full shadow-2xl uppercase">
+            <h3 class="text-lg font-black mb-2 text-[#004a99] text-center">KONFIRMASI KEMBALI</h3>
+            <input type="date" id="actualReturnDate" class="form-input mb-8">
+            <div class="flex gap-2">
+                <button onclick="closeModal()" class="flex-1 py-4 bg-slate-100 rounded-full font-bold text-[9px]">BATAL</button>
+                <button onclick="saveReturn()" class="flex-1 py-4 btn-primary rounded-full text-[9px] bg-[#004a99] text-white">SIMPAN</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed bottom-10 left-1/2 -translate-x-1/2 transform translate-y-32 opacity-0 transition-all duration-500 bg-[#004a99] text-white px-12 py-5 rounded-full shadow-2xl z-[200] border border-white/20">
+        <span id="toastMessage" class="font-black text-[10px] tracking-widest uppercase text-center italic">OPERASI BERHASIL</span>
+    </div>
+
+    <script>
+        let dbList = [];
+        let curId = null;
+
+        const initSync = async () => {
+            const checkReady = setInterval(async () => {
+                if(window.cloud) {
+                    clearInterval(checkReady);
+                    const { auth, db, appId, onSnapshot, collection, signInAnonymously, signInWithCustomToken } = window.cloud;
+                    
+                    try {
+                        const token = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+                        if(token) await signInWithCustomToken(auth, token); else await signInAnonymously(auth);
+
+                        const dataCollection = collection(db, 'artifacts', appId, 'public', 'data', 'pelindo_inventory');
+                        onSnapshot(dataCollection, (snap) => {
+                            dbList = snap.docs.map(d => ({ id: d.id, ...d.data() })).sort((a,b) => (b.createdAt || 0) - (a.createdAt || 0));
+                            renderUI();
+                            document.getElementById('loader').classList.add('opacity-0');
+                            setTimeout(() => document.getElementById('loader').classList.add('hidden'), 500);
+                        }, (err) => showToast("Koneksi Gagal"));
+                    } catch(e) { showToast("Gagal Login Cloud"); }
+                }
+            }, 100);
+        };
+
+        function handleStatusChange() { document.getElementById('outOptions').classList.toggle('hidden', document.getElementById('itemStatus').value !== 'KELUAR'); }
+        function handleSubStatusChange() {
+            const sub = document.querySelector('input[name="subStatus"]:checked').value;
+            document.getElementById('borrowFields').classList.toggle('hidden', sub !== 'DIPINJAM');
+            document.getElementById('installFields').classList.toggle('hidden', sub !== 'INSTALASI');
+        }
+
+        document.getElementById('inventoryForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const { db, appId, collection, addDoc } = window.cloud;
+            const status = document.getElementById('itemStatus').value;
+            const sub = status === 'KELUAR' ? document.querySelector('input[name="subStatus"]:checked').value : null;
+            let detail = "-";
+            if(sub === 'DIPINJAM') detail = `PEMINJAM: ${document.getElementById('borrowerName').value || 'STAF'} | TGL: ${document.getElementById('borrowDate').value}`;
+            else if(sub === 'INSTALASI') detail = `PELAKSANA: ${document.getElementById('installTech').value} | LOKASI: ${document.getElementById('installLoc').value}`;
+            const ext = document.getElementById('extraNote').value;
+            if(ext) detail += ` | CAT: ${ext}`;
+
+            try {
+                await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'pelindo_inventory'), {
+                    name: document.getElementById('itemName').value.toUpperCase(),
+                    cat: document.getElementById('itemCategory').value,
+                    type: document.getElementById('itemType').value.toUpperCase() || "-",
+                    qty: parseInt(document.getElementById('itemQty').value),
+                    unit: document.getElementById('itemUnit').value,
+                    statusText: status === 'MASUK' ? 'MASUK' : `KELUAR (${sub})`,
+                    mainStatus: status, subType: sub, detail, returnDate: null,
+                    createdAt: Date.now(),
+                    timestamp: new Date().toLocaleString('id-ID', {day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit'}).toUpperCase()
+                });
+                e.target.reset(); handleStatusChange(); showToast("DATA TERSIMPAN");
+            } catch(e) { showToast("GAGAL MENYIMPAN"); }
+        });
+
+        async function importFromExcel(event) {
+            const { db, appId, collection, addDoc } = window.cloud;
+            const file = event.target.files[0]; if(!file) return;
+            const reader = new FileReader();
+            reader.onload = async function(e) {
+                const workbook = XLSX.read(new Uint8Array(e.target.result), { type: 'array' });
+                const jsonData = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
+                let count = 0;
+                for(let row of jsonData) {
+                    const name = (row['NAMA BARANG'] || '').toString().toUpperCase();
+                    if(!name) continue;
+                    await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'pelindo_inventory'), {
+                        name, cat: (row['KATEGORI'] || 'ELECTRICAL').toUpperCase(), type: (row['TIPE'] || '-').toUpperCase(),
+                        qty: parseInt(row['JUMLAH'] || 0), unit: (row['SATUAN'] || 'PCS').toUpperCase(),
+                        statusText: 'MASUK (IMPOR)', mainStatus: 'MASUK', detail: "IMPOR DATA", returnDate: null,
+                        createdAt: Date.now(), timestamp: new Date().toLocaleString('id-ID').toUpperCase()
+                    });
+                    count++;
+                }
+                showToast(`${count} DATA DIIMPOR`);
+                event.target.value = '';
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        async function deleteItem(id) { if(confirm('HAPUS DATA?')) await window.cloud.deleteDoc(window.cloud.doc(window.cloud.db, 'artifacts', window.cloud.appId, 'public', 'data', 'pelindo_inventory', id)); }
+        function openModal(id) { curId = id; document.getElementById('returnModal').classList.remove('hidden'); }
+        function closeModal() { document.getElementById('returnModal').classList.add('hidden'); }
+        async function saveReturn() {
+            const date = document.getElementById('actualReturnDate').value;
+            if(!date) return;
+            const item = dbList.find(x => x.id === curId);
+            await window.cloud.updateDoc(window.cloud.doc(window.cloud.db, 'artifacts', window.cloud.appId, 'public', 'data', 'pelindo_inventory', curId), {
+                returnDate: date, detail: item.detail + ` | KEMBALI: ${date}`, statusText: 'KELUAR (KEMBALI)'
+            });
+            closeModal(); showToast("DATA DIPERBARUI");
+        }
+
+        function renderUI() {
+            const list = document.getElementById('inventoryList'); list.innerHTML = '';
+            dbList.forEach(i => {
+                let badge = i.mainStatus === 'MASUK' ? 'bg-green-50 text-green-700' : 'bg-slate-50 text-slate-500';
+                if(i.subType === 'DIPINJAM') badge = 'bg-blue-50 text-blue-600';
+                if(i.subType === 'INSTALASI') badge = 'bg-orange-50 text-orange-600';
+                list.innerHTML += `<tr>
+                    <td class="px-6 py-5"><b>${i.timestamp}</b><br><span class="text-[#00aeef] text-[8px] tracking-widest">${i.cat}</span></td>
+                    <td class="px-6 py-4"><b>${i.name}</b><br><span class="text-[8px] text-slate-300 font-bold">${i.type}</span><br><span class="text-xs text-slate-600">${i.qty} ${i.unit}</span><br><span class="status-badge ${badge} mt-1 inline-block">${i.statusText}</span><br>
+                        <div class="text-[9px] text-slate-400 lowercase mt-2 italic font-bold leading-tight">${i.detail}</div>
+                        ${i.subType === 'DIPINJAM' && !i.returnDate ? `<button onclick="openModal('${i.id}')" class="text-[8px] text-[#00aeef] border border-blue-100 px-2 py-0.5 rounded-full mt-2 uppercase transition-all hover:bg-blue-50">Tandai Kembali</button>` : ''}
+                    </td>
+                    <td class="px-6 py-4 text-right align-top"><button onclick="deleteItem('${i.id}')" class="text-slate-200 mt-1 transition-colors hover:text-red-500"><i data-lucide="trash-2" class="w-4 h-4"></i></button></td>
+                </tr>`;
+            });
+            updateStats(); document.getElementById('counter').innerText = `${dbList.length} ENTRI`; lucide.createIcons();
+        }
+
+        function updateStats() {
+            const s = {}; dbList.forEach(i => {
+                if(!s[i.name]) s[i.name] = { in: 0, out: 0, unit: i.unit, cat: i.cat };
+                if(i.mainStatus === 'MASUK') s[i.name].in += i.qty; else s[i.name].out += i.qty;
+            });
+            const cont = document.getElementById('stockSummary'); cont.innerHTML = '';
+            Object.keys(s).slice(0, 4).forEach(k => {
+                const bal = s[k].in - s[k].out;
+                cont.innerHTML += `<div class="bg-white p-4 rounded-[2rem] border border-slate-100 flex flex-col justify-between shadow-sm min-h-[90px]">
+                    <span class="text-[7px] text-slate-300 font-black tracking-widest uppercase truncate">${s[k].cat}</span>
+                    <div><div class="text-[10px] font-black truncate text-slate-800 uppercase">${k}</div><div class="text-lg font-black text-[#004a99] mt-1">${bal} <small class="text-[8px] font-bold text-slate-400 uppercase">${s[k].unit}</small></div></div>
+                </div>`;
+            });
+        }
+
+        function showToast(m) { const t = document.getElementById('toast'); document.getElementById('toastMessage').innerText = m.toUpperCase(); t.classList.replace('translate-y-32', 'translate-y-0'); t.classList.replace('opacity-0', 'opacity-100'); setTimeout(() => { t.classList.replace('translate-y-0', 'translate-y-32'); t.classList.replace('opacity-100', 'opacity-0'); }, 3000); }
+
+        function exportToExcel() { const ws = XLSX.utils.json_to_sheet(dbList.map(i => ({ 'WAKTU': i.timestamp, 'KATEGORI': i.cat, 'BARANG': i.name, 'QTY': i.qty, 'STATUS': i.statusText, 'DETAIL': i.detail }))); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Inventaris"); XLSX.writeFile(wb, `EXCEL_PELINDO.xlsx`); }
+        async function exportToPDF() { const { jsPDF } = window.jspdf; const doc = new jsPDF('l', 'mm', 'a4'); doc.text("LAPORAN INVENTARIS TERMINAL 2", 14, 15); doc.autoTable({ head: [['WAKTU', 'KAT', 'BARANG', 'QTY', 'STATUS', 'DETAIL']], body: dbList.map(i => [i.timestamp, i.cat, i.name, `${i.qty} ${i.unit}`, i.statusText, i.detail]), startY: 25 }); doc.save("PDF_PELINDO.pdf"); }
+        async function exportToWord() { 
+            const { Document, Packer, Paragraph, Table, TableRow, TableCell, WidthType } = docx; 
+            const rows = [new TableRow({ children: ["WAKTU", "KAT", "BARANG", "STATUS"].map(t => new TableCell({ children: [new Paragraph({ text: t, bold: true })] })) })]; 
+            dbList.forEach(i => rows.push(new TableRow({ children: [i.timestamp, i.cat, i.name, i.statusText].map(t => new TableCell({ children: [new Paragraph(t)] })) }))); 
+            const docX = new Document({ sections: [{ children: [new Paragraph({ text: "LAPORAN INVENTARIS TERMINAL 2", bold: true, size: 28 }), new Table({ width: { size: 100, type: WidthType.PERCENTAGE }, rows })] }] }); 
+            saveAs(await Packer.toBlob(docX), "WORD_PELINDO.docx"); 
+        }
+
+        window.onload = initSync;
+    </script>
+</body>
+</html>
