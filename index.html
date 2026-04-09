@@ -5,13 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>PELINDO INVENTORY - TERMINAL 2</title>
     
-    <!-- PWA & Optimization -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#004a99">
     <link rel="manifest" href="manifest.json">
 
-    <!-- Framework & Library -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
@@ -67,13 +65,11 @@
 </head>
 <body class="min-h-screen text-slate-800 pb-20 text-left">
 
-    <!-- Screen Loading -->
     <div id="loader" class="loading-overlay">
         <div class="relative"><div class="w-20 h-20 border-4 border-slate-100 rounded-full"></div><div class="w-20 h-20 border-4 border-[#00aeef] border-t-transparent rounded-full animate-spin absolute top-0 left-0"></div></div>
         <p class="font-black text-[10px] tracking-[0.4em] text-[#004a99] mt-8 animate-pulse uppercase text-center">SINKRONISASI PELINDO...</p>
     </div>
 
-    <!-- Navigasi Atas -->
     <nav class="pelindo-gradient text-white shadow-2xl sticky top-0 z-[100] border-b border-white/10">
         <div class="max-w-7xl mx-auto px-6 py-5 flex justify-between items-center">
             <div class="flex items-center gap-5 cursor-pointer text-left" onclick="switchView('dashboard')">
@@ -82,13 +78,13 @@
                 </div>
                 <div class="flex flex-col">
                     <h1 class="text-base md:text-lg font-extrabold tracking-widest leading-none text-white uppercase">PT PELINDO PETIKEMAS NEW MAKASSAR</h1>
-                    <p class="text-[9px] mt-1.5 opacity-80 font-black tracking-[0.3em] uppercase text-white">TEKNIK TERMINAL 2</p>
+                    <p class="text-[9px] mt-1.5 opacity-80 font-black tracking-[0.3em] uppercase text-white text-left">TEKNIK TERMINAL 2</p>
                 </div>
             </div>
             <div class="flex items-center gap-4">
                 <div id="syncIndicator" class="hidden sm:flex items-center gap-2 bg-white/10 px-4 py-2 rounded-full border border-white/20 text-white">
                     <div id="syncDot" class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                    <span class="text-[8px] font-black uppercase tracking-widest">SINKRON</span>
+                    <span id="syncText" class="text-[8px] font-black uppercase tracking-widest">SINKRON</span>
                 </div>
                 <button onclick="toggleMenu()" class="w-10 h-10 rounded-full bg-white/10 border border-white/20 flex items-center justify-center hover:bg-white/30 transition-all text-white">
                     <i data-lucide="more-vertical"></i>
@@ -97,7 +93,6 @@
         </div>
     </nav>
 
-    <!-- Overlay Menu Modul -->
     <div id="menuOverlay" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[150]" onclick="toggleMenu()">
         <div class="absolute right-6 top-24 w-80 bg-white rounded-[2.5rem] shadow-2xl p-6 space-y-3" onclick="event.stopPropagation()">
             <h4 class="text-[10px] font-black text-slate-400 mb-4 px-4 tracking-[0.4em]">MODUL SISTEM</h4>
@@ -120,10 +115,9 @@
         </div>
     </div>
 
-    <!-- Template Tombol Laporan -->
     <template id="report-buttons-template">
         <div class="bg-white/60 p-4 rounded-[2.5rem] border border-slate-100 flex items-center gap-6 px-8 shadow-sm">
-            <span class="text-[10px] font-black text-[#004a99] uppercase tracking-widest hidden lg:block">LAPORAN:</span>
+            <span class="text-[10px] font-black text-[#004a99] uppercase tracking-widest hidden lg:block">Laporan:</span>
             <div class="flex gap-5">
                 <button onclick="exportToExcel()" class="btn-circle color-excel shadow-md"><i data-lucide="sheet" class="w-5 h-5"></i></button>
                 <button onclick="exportToWord()" class="btn-circle color-word shadow-md"><i data-lucide="file-text" class="w-5 h-5"></i></button>
@@ -132,17 +126,31 @@
         </div>
     </template>
 
-    <!-- VIEW 1: DASHBOARD UTAMA -->
     <div id="view-dashboard" class="view-section active-view max-w-7xl mx-auto px-4 sm:px-6 py-10 text-left">
         <div class="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-8">
             <div>
                 <h2 class="text-3xl font-black text-slate-900 tracking-[0.2em] uppercase leading-none text-left">Inventaris Workshop</h2>
-                <div class="h-1.5 w-24 bg-[#00aeef] mt-4 rounded-full"></div>
+                <div class="h-1.5 w-24 bg-[#00aeef] mt-4 rounded-full text-left"></div>
             </div>
-            <div id="report-target-dashboard"></div>
+            
+            <div class="flex flex-col sm:flex-row gap-6 items-center">
+                <div class="bg-white px-6 py-4 rounded-[2rem] border border-slate-200 flex items-center gap-6 shadow-sm hover:shadow-md transition-all text-left">
+                    <div class="flex items-center gap-3">
+                        <div class="bg-emerald-50 p-3 rounded-2xl text-emerald-600"><i data-lucide="file-up" class="w-5 h-5"></i></div>
+                        <div class="hidden lg:block">
+                            <h4 class="text-[10px] font-black text-slate-400 uppercase leading-none mb-1">Impor Stok Awal</h4>
+                            <p class="text-[8px] font-bold text-slate-300 normal-case italic">Otomatis Satukan Merk</p>
+                        </div>
+                    </div>
+                    <label class="cursor-pointer bg-[#004a99] text-white px-6 py-3 rounded-full text-[9px] font-black uppercase transition-all active:scale-95 shadow-lg">
+                        PILIH FILE
+                        <input type="file" id="excelInput" accept=".xlsx, .xls" class="hidden" onchange="importFromExcel(event)">
+                    </label>
+                </div>
+                <div id="report-target-dashboard"></div>
+            </div>
         </div>
 
-        <!-- DIAGRAM DASHBOARD INTERAKTIF -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
             <div onclick="switchView('fullStock')" class="card-pelindo p-8 chart-card">
                 <div id="badge-ELECTRICAL" class="crit-badge hidden">0 LOW</div>
@@ -162,10 +170,9 @@
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-10">
-            <!-- Form Input -->
             <div class="lg:col-span-4">
                 <div class="card-pelindo sticky top-28">
-                    <div class="bg-slate-50 px-8 py-6 border-b flex items-center gap-3"><div class="bg-[#004a99] p-2 rounded-xl text-white"><i data-lucide="plus" class="w-4 h-4 text-white"></i></div><h3 class="font-black text-slate-800 text-[11px] uppercase tracking-widest leading-none">Pendaftaran Aktivitas</h3></div>
+                    <div class="bg-slate-50 px-8 py-6 border-b flex items-center gap-3"><div class="bg-[#004a99] p-2 rounded-xl text-white"><i data-lucide="plus" class="w-4 h-4 text-white"></i></div><h3 class="font-black text-slate-800 text-[11px] uppercase tracking-widest leading-none text-left">Pendaftaran Aktivitas</h3></div>
                     <form id="inventoryForm" class="p-8 space-y-6">
                         <div><label class="block text-[10px] font-black text-slate-400 mb-2 uppercase tracking-widest">Kategori</label><select id="itemCategory" required class="form-input font-black text-slate-700 tracking-widest"><option value="ELECTRICAL">ELECTRICAL</option><option value="PLUMBING">PLUMBING</option><option value="MECHANICAL">MECHANICAL</option></select></div>
                         <div class="grid grid-cols-1 gap-6">
@@ -181,7 +188,7 @@
                             </div>
                         </div>
                         <div><label class="block text-[10px] font-black text-slate-400 mb-2 uppercase tracking-widest">Harga Satuan (Rp)</label><input type="number" id="itemPrice" class="form-input" placeholder="0"></div>
-                        <div><label class="block text-[10px] font-black text-slate-400 mb-2 uppercase tracking-widest">Aliran Barang</label><select id="itemStatus" onchange="handleStatusChange()" class="form-input bg-slate-50 text-[#004a99] tracking-widest"><option value="MASUK">BARANG MASUK (+)</option><option value="KELUAR">BARANG KELUAR (-)</option></select></div>
+                        <div><label class="block text-[10px] font-black text-slate-400 mb-2 uppercase tracking-widest text-left">Aliran Barang</label><select id="itemStatus" onchange="handleStatusChange()" class="form-input bg-slate-50 text-[#004a99] tracking-widest"><option value="MASUK">BARANG MASUK (+)</option><option value="KELUAR">BARANG KELUAR (-)</option></select></div>
                         
                         <div id="outOptions" class="hidden p-6 bg-blue-50/50 rounded-[2.5rem] border border-blue-100 border-dashed space-y-8 animate-in fade-in duration-300 text-left">
                             <div class="grid grid-cols-2 gap-3 text-left">
@@ -195,9 +202,9 @@
                                     <div><label class="block text-[8px] font-black tracking-[0.2em] mb-1.5 ml-2 uppercase">Rencana Kembali</label><input type="date" id="plannedReturnDate" class="form-input shadow-none text-xs"></div>
                                 </div>
                             </div>
-                            <div id="installFields" class="hidden space-y-6 text-left text-blue-900">
+                            <div id="installFields" class="hidden space-y-6 text-left">
                                 <div><label class="block text-[8px] font-black tracking-[0.2em] mb-1.5 ml-2 uppercase text-left">Teknisi Pelaksana</label><input type="text" id="installTech" class="form-input shadow-none text-xs tracking-wider" placeholder="NAMA TEKNISI..."></div>
-                                <div><label class="block text-[8px] font-black tracking-[0.2em] mb-1.5 ml-2 uppercase text-left">Lokasi Penempatan</label><input type="text" id="installLoc" class="form-input shadow-none text-xs tracking-wider" placeholder="LOKASI (MISAL: LT. 3)"></div>
+                                <div><label class="block text-[8px] font-black tracking-[0.2em] mb-1.5 ml-2 uppercase text-left">Lokasi Penempatan</label><input type="text" id="installLoc" class="form-input shadow-none text-xs tracking-wider" placeholder="LOKASI..."></div>
                             </div>
                             <div class="pt-2"><label class="block text-[8px] font-black text-blue-800 tracking-[0.2em] mb-1.5 ml-2 uppercase text-left">Catatan</label><textarea id="extraNote" class="form-input shadow-none text-xs h-24 tracking-wider" placeholder="INFORMASI..."></textarea></div>
                         </div>
@@ -205,32 +212,30 @@
                     </form>
                 </div>
             </div>
-            <!-- Riwayat -->
             <div class="lg:col-span-8">
                 <div class="card-pelindo">
                     <div class="px-10 py-8 border-b flex justify-between items-center bg-white sticky top-0 z-10 text-left">
-                        <div><h3 class="font-black text-slate-800 text-lg uppercase tracking-widest leading-none text-left">Riwayat Aktivitas</h3><p class="text-[9px] text-slate-400 font-bold uppercase tracking-[0.3em] mt-2 text-left">Sinkronisasi Cloud Aktif</p></div>
-                        <div class="flex items-center gap-3"><button onclick="showConfirmReset()" class="bg-red-50 text-red-600 hover:bg-red-100 px-4 py-2 rounded-full text-[9px] font-black border border-red-200 uppercase tracking-widest flex items-center gap-2"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i> RESET</button><span id="counter" class="text-[10px] bg-[#004a99] text-white px-5 py-2 rounded-full font-black uppercase tracking-widest">0 ENTRI</span></div>
+                        <div><h3 class="font-black text-slate-800 text-lg uppercase tracking-widest leading-none">Riwayat Aktivitas</h3><p class="text-[9px] text-slate-400 font-bold uppercase tracking-[0.3em] mt-2">Sinkronisasi Cloud Aktif</p></div>
+                        <div class="flex items-center gap-3"><button onclick="showConfirmReset()" class="bg-red-50 text-red-600 hover:bg-red-100 px-4 py-2 rounded-full text-[9px] font-black border border-red-200 transition-all uppercase tracking-widest flex items-center gap-2"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i> RESET</button><span id="counter" class="text-[10px] bg-[#004a99] text-white px-5 py-2 rounded-full font-black uppercase tracking-widest">0 ENTRI</span></div>
                     </div>
-                    <div class="overflow-x-auto text-left"><table class="w-full border-collapse"><tbody id="inventoryList" class="text-[11px] divide-y divide-slate-100 font-bold uppercase tracking-wider"></tbody></table></div>
+                    <div class="overflow-x-auto text-left uppercase"><table class="w-full border-collapse uppercase"><tbody id="inventoryList" class="text-[11px] divide-y divide-slate-100 font-bold uppercase tracking-wider"></tbody></table></div>
                     <div id="emptyState" class="hidden py-32 text-center text-left"><i data-lucide="database-backup" class="text-slate-200 w-12 h-12 mx-auto mb-4"></i><p class="text-slate-300 font-black text-[11px] uppercase tracking-[0.4em] text-center">Database Kosong</p></div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- MODUL LAINNYA -->
     <div id="view-fullStock" class="view-section max-w-7xl mx-auto px-6 py-10 text-left uppercase">
         <div class="flex flex-col md:flex-row md:items-center justify-between mb-10 text-left gap-8">
-            <div class="flex items-center gap-6"><button onclick="switchView('dashboard')" class="bg-slate-100 p-4 rounded-full text-slate-600 hover:bg-slate-200 transition-all"><i data-lucide="arrow-left" class="w-6 h-6"></i></button><div><h2 class="text-2xl font-black text-[#004a99] uppercase tracking-[0.2em] leading-none text-left">Informasi Stok</h2><p class="text-[9px] font-bold text-slate-400 mt-3 uppercase tracking-[0.3em] text-left">Kelola Kuantitas Langsung</p><div class="h-1.5 w-20 bg-orange-500 mt-4 rounded-full text-left"></div></div></div>
+            <div class="flex items-center gap-6"><button onclick="switchView('dashboard')" class="bg-slate-100 p-4 rounded-full text-slate-600 hover:bg-slate-200 transition-all"><i data-lucide="arrow-left" class="w-6 h-6"></i></button><div><h2 class="text-2xl font-black text-[#004a99] uppercase tracking-[0.2em] leading-none">Informasi Stok</h2><p class="text-[9px] font-bold text-slate-400 mt-3 uppercase tracking-[0.3em]">Kelola Kuantitas Langsung</p><div class="h-1.5 w-20 bg-orange-500 mt-4 rounded-full"></div></div></div>
             <div id="report-target-fullStock"></div>
         </div>
-        <div id="stockGroupedContent" class="space-y-14 uppercase"></div>
+        <div id="stockGroupedContent" class="space-y-14"></div>
     </div>
 
     <div id="view-loanMonitor" class="view-section max-w-7xl mx-auto px-6 py-10 text-left uppercase">
         <div class="flex flex-col md:flex-row md:items-center justify-between mb-10 gap-8">
-            <div class="flex items-center gap-6 text-left"><button onclick="switchView('dashboard')" class="bg-slate-100 p-4 rounded-full text-slate-600 hover:bg-slate-200 transition-all"><i data-lucide="arrow-left" class="w-6 h-6"></i></button><div class="text-left"><h2 class="text-2xl font-black text-[#004a99] uppercase tracking-[0.2em] leading-none text-left">Monitor Pinjaman</h2><p class="text-[9px] font-bold text-slate-400 mt-3 uppercase tracking-[0.3em] text-left">Daftar Belum Kembali</p><div class="h-1.5 w-20 bg-purple-500 mt-4 rounded-full text-left"></div></div></div>
+            <div class="flex items-center gap-6 text-left"><button onclick="switchView('dashboard')" class="bg-slate-100 p-4 rounded-full text-slate-600 hover:bg-slate-200 transition-all"><i data-lucide="arrow-left" class="w-6 h-6"></i></button><div class="text-left"><h2 class="text-2xl font-black text-[#004a99] uppercase tracking-[0.2em] leading-none">Monitor Pinjaman</h2><p class="text-[9px] font-bold text-slate-400 mt-3 uppercase tracking-[0.3em]">Daftar Belum Kembali</p><div class="h-1.5 w-20 bg-purple-500 mt-4 rounded-full"></div></div></div>
             <div id="report-target-loanMonitor"></div>
         </div>
         <div class="card-pelindo overflow-hidden"><div class="overflow-x-auto"><table class="w-full border-collapse"><tbody id="borrowListBody" class="text-[11px] divide-y divide-slate-100 font-bold uppercase tracking-wider"></tbody></table></div></div>
@@ -238,14 +243,13 @@
 
     <div id="view-budgetView" class="view-section max-w-7xl mx-auto px-6 py-10 text-left uppercase">
         <div class="flex flex-col md:flex-row md:items-center justify-between mb-10 gap-8">
-            <div class="flex items-center gap-6 text-left uppercase"><button onclick="switchView('dashboard')" class="bg-slate-100 p-4 rounded-full text-slate-600 hover:bg-slate-200 transition-all"><i data-lucide="arrow-left" class="w-6 h-6"></i></button><div class="text-left"><h2 class="text-2xl font-black text-[#004a99] uppercase tracking-[0.2em] leading-none text-left uppercase">Anggaran</h2><p class="text-[9px] font-bold text-slate-400 mt-3 uppercase tracking-[0.3em] text-left">Estimasi Biaya Pengadaan</p><div class="h-1.5 w-20 bg-emerald-500 mt-4 rounded-full text-left"></div></div></div>
+            <div class="flex items-center gap-6 text-left uppercase"><button onclick="switchView('dashboard')" class="bg-slate-100 p-4 rounded-full text-slate-600 hover:bg-slate-200 transition-all"><i data-lucide="arrow-left" class="w-6 h-6"></i></button><div class="text-left"><h2 class="text-2xl font-black text-[#004a99] uppercase tracking-[0.2em] leading-none">Anggaran</h2><p class="text-[9px] font-bold text-slate-400 mt-3 uppercase tracking-[0.3em]">Estimasi Biaya Pengadaan</p><div class="h-1.5 w-20 bg-emerald-500 mt-4 rounded-full"></div></div></div>
             <div id="report-target-budgetView"></div>
         </div>
-        <div id="budgetMetrics" class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10 uppercase"></div>
+        <div id="budgetMetrics" class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10"></div>
         <div class="card-pelindo p-10 uppercase"><h3 class="text-xs font-black text-slate-400 mb-6 tracking-[0.4em] text-left">RINCIAN BARANG MASUK</h3><div class="overflow-x-auto"><table class="w-full border-collapse"><tbody id="budgetListBody" class="text-[11px] divide-y divide-slate-100 font-bold uppercase tracking-wider"></tbody></table></div></div>
     </div>
 
-    <!-- MODAL CUSTOM (Replacement for native modals) -->
     <div id="customModal" class="hidden fixed inset-0 bg-slate-900/80 backdrop-blur-md z-[300] flex items-center justify-center p-6">
         <div class="bg-white rounded-[3rem] p-10 max-w-sm w-full shadow-2xl border border-white/20 text-center">
             <div id="modalIcon" class="w-16 h-16 rounded-3xl flex items-center justify-center mb-6 mx-auto"></div>
@@ -253,21 +257,14 @@
             <p id="modalMsg" class="text-[10px] text-slate-400 font-bold mb-8 tracking-widest leading-loose uppercase"></p>
             <div id="modalInputArea" class="hidden mb-6"><input type="text" id="modalTextEntry" class="form-input text-center"></div>
             <div id="modalDateArea" class="hidden mb-6"><input type="date" id="modalDateEntry" class="form-input text-center"></div>
-            <div class="flex gap-3 uppercase">
-                <button onclick="closeCustomModal()" class="flex-1 py-4 bg-slate-100 rounded-full font-black text-[10px] tracking-widest uppercase text-slate-500">BATAL</button>
-                <button id="modalConfirmBtn" class="flex-1 py-4 bg-[#004a99] text-white rounded-full text-[10px] font-black tracking-widest shadow-lg uppercase">OK</button>
-            </div>
+            <div class="flex gap-3 uppercase"><button onclick="closeCustomModal()" class="flex-1 py-4 bg-slate-100 rounded-full font-black text-[10px] tracking-widest text-slate-500">BATAL</button><button id="modalConfirmBtn" class="flex-1 py-4 bg-[#004a99] text-white rounded-full text-[10px] font-black tracking-widest shadow-lg">OK</button></div>
         </div>
     </div>
 
     <div id="toast" class="fixed bottom-12 left-1/2 -translate-x-1/2 transform translate-y-32 opacity-0 transition-all duration-500 bg-[#004a99] text-white px-12 py-6 rounded-full shadow-2xl z-[250] flex items-center gap-4 font-black text-[11px] tracking-[0.4em] uppercase italic text-white"><span id="toastMessage">OPERASI BERHASIL</span></div>
 
     <script>
-        let dbList = [];
-        let isSyncActive = false;
-        let curId = null;
-        let chartInstances = {};
-        let modalAction = null;
+        let dbList = []; let isSyncActive = false; let curId = null; let chartInstances = {};
 
         const init = async () => {
             const template = document.getElementById('report-buttons-template').innerHTML;
@@ -275,7 +272,6 @@
                 const target = document.getElementById(`report-target-${id}`);
                 if (target) target.innerHTML = template;
             });
-
             if (typeof lucide !== 'undefined') lucide.createIcons();
             const { auth, db, collection, onSnapshot, query, orderBy, signInAnonymously } = window.pelindoSync;
             try {
@@ -283,12 +279,10 @@
                 const q = query(collection(db, "pelindo_inventory"), orderBy("createdAt", "desc"));
                 onSnapshot(q, (snap) => {
                     dbList = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-                    isSyncActive = true;
-                    updateSyncUI(true);
-                    renderUI();
+                    isSyncActive = true; updateSyncUI(true); renderUI();
                     document.getElementById('loader').classList.add('opacity-0');
                     setTimeout(() => document.getElementById('loader').classList.add('hidden'), 500);
-                }, (err) => { console.error(err); document.getElementById('loader').classList.add('hidden'); });
+                });
             } catch(e) { console.error(e); document.getElementById('loader').classList.add('hidden'); }
         };
 
@@ -297,8 +291,7 @@
             const target = document.getElementById(`view-${viewName}`);
             if (target) target.classList.add('active-view');
             document.getElementById('menuOverlay').classList.add('hidden');
-            window.scrollTo(0,0);
-            renderUI();
+            window.scrollTo(0,0); renderUI();
         }
 
         function toggleMenu() { document.getElementById('menuOverlay').classList.toggle('hidden'); }
@@ -307,47 +300,58 @@
             if (dot) { dot.classList.replace('bg-slate-400', 'bg-green-400'); dot.classList.add('animate-pulse'); }
         }
 
-        // --- Custom Modal Handlers (Replacing confirm/prompt) ---
-        function openCustomModal(title, msg, type = 'info', action) {
-            modalAction = action;
-            document.getElementById('modalTitle').innerText = title;
-            document.getElementById('modalMsg').innerText = msg;
-            const iconArea = document.getElementById('modalIcon');
-            iconArea.className = `w-16 h-16 rounded-3xl flex items-center justify-center mb-6 mx-auto ${type === 'danger' ? 'bg-red-50 text-red-500' : 'bg-blue-50 text-blue-500'}`;
-            iconArea.innerHTML = `<i data-lucide="${type === 'danger' ? 'trash-2' : 'info'}"></i>`;
-            
-            document.getElementById('modalInputArea').classList.add('hidden');
-            document.getElementById('modalDateArea').classList.add('hidden');
-            document.getElementById('customModal').classList.remove('hidden');
-            
-            const btn = document.getElementById('modalConfirmBtn');
-            btn.onclick = () => { action(); closeCustomModal(); };
-            lucide.createIcons();
+        async function importFromExcel(event) {
+            const file = event.target.files[0]; if(!file) return;
+            const reader = new FileReader();
+            reader.onload = async function(e) {
+                const workbook = XLSX.read(new Uint8Array(e.target.result), { type: 'array' });
+                const jsonData = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
+                for(let row of jsonData) {
+                    const name = (row['Nama Barang'] || row['BARANG'] || row['NAMA BARANG'] || '').toString().toUpperCase();
+                    if(!name) continue;
+                    
+                    // Logika Gabung Merk & Tipe dari Excel
+                    const merk = (row['Merk'] || row['MERK'] || '').toString().trim();
+                    const tipe = (row['Type'] || row['TIPE'] || '').toString().trim();
+                    let mergedType = (merk && tipe) ? `${merk} - ${tipe}` : (merk || tipe || "-");
+
+                    await window.pelindoSync.addDoc(window.pelindoSync.collection(window.pelindoSync.db, "pelindo_inventory"), {
+                        name, cat: (row['KATEGORI'] || 'ELECTRICAL').toUpperCase(),
+                        type: mergedType.toUpperCase(), 
+                        qty: parseInt(row['VOL'] || row['JUMLAH'] || 0), 
+                        price: parseFloat(row['HARGA SATUAN \n(Rp)'] || row['HARGA'] || 0),
+                        unit: (row['SAT'] || row['SATUAN'] || 'PCS').toUpperCase(),
+                        statusText: 'BARANG MASUK (IMPOR)', mainStatus: 'MASUK', detail: "STOK AWAL (IMPOR EXCEL)", 
+                        createdAt: Date.now(), timestamp: new Date().toLocaleString('id-ID', {day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit'}).toUpperCase()
+                    });
+                }
+                showToast("DATA STOK AWAL DIIMPOR");
+            };
+            reader.readAsArrayBuffer(file);
         }
 
-        function showConfirmDelete(id) { openCustomModal("HAPUS DATA?", "INVENTARIS INI AKAN DIHAPUS PERMANEN DARI DATABASE CLOUD.", "danger", () => deleteItem(id)); }
+        function showConfirmDelete(id) { openCustomModal("HAPUS DATA?", "DATA AKAN DIHAPUS PERMANEN.", "danger", () => deleteItem(id)); }
         function showConfirmReset() {
-            modalAction = async () => {
+            const action = async () => {
                 const k = document.getElementById('modalTextEntry').value;
                 if (k === "KONFIRMASI") {
                     const { db, collection, deleteDoc, doc, getDocs } = window.pelindoSync;
                     const snap = await getDocs(collection(db, "pelindo_inventory"));
                     await Promise.all(snap.docs.map(d => deleteDoc(doc(db, "pelindo_inventory", d.id))));
                     showToast("DATABASE BERSIH");
-                } else { showToast("Gagal: Kata sandi salah", "bg-red-500"); }
+                }
             };
-            document.getElementById('modalTitle').innerText = "HAPUS DATABASE?";
-            document.getElementById('modalMsg').innerText = "Ketik 'KONFIRMASI' untuk membersihkan seluruh data.";
+            document.getElementById('modalTitle').innerText = "HAPUS DATA?";
+            document.getElementById('modalMsg').innerText = "Ketik 'KONFIRMASI' untuk menghapus seluruh data.";
             document.getElementById('modalInputArea').classList.remove('hidden');
             document.getElementById('modalTextEntry').value = "";
-            document.getElementById('modalConfirmBtn').onclick = modalAction;
+            document.getElementById('modalConfirmBtn').onclick = action;
             document.getElementById('customModal').classList.remove('hidden');
         }
 
         function openModal(id) {
-            curId = id;
-            document.getElementById('modalTitle').innerText = "BARANG KEMBALI";
-            document.getElementById('modalMsg').innerText = "CATAT TANGGAL PENERIMAAN BARANG DI WORKSHOP.";
+            curId = id; document.getElementById('modalTitle').innerText = "BARANG KEMBALI";
+            document.getElementById('modalMsg').innerText = "CATAT TANGGAL DITERIMA.";
             document.getElementById('modalDateArea').classList.remove('hidden');
             document.getElementById('modalDateEntry').valueAsDate = new Date();
             document.getElementById('modalConfirmBtn').onclick = saveReturn;
@@ -360,18 +364,27 @@
             document.getElementById('modalDateArea').classList.add('hidden');
         }
 
-        // --- Core Functions ---
+        function openCustomModal(title, msg, type = 'info', action) {
+            document.getElementById('modalTitle').innerText = title;
+            document.getElementById('modalMsg').innerText = msg;
+            const iconArea = document.getElementById('modalIcon');
+            iconArea.className = `w-16 h-16 rounded-3xl flex items-center justify-center mb-6 mx-auto ${type === 'danger' ? 'bg-red-50 text-red-500' : 'bg-blue-50 text-blue-500'}`;
+            iconArea.innerHTML = `<i data-lucide="${type === 'danger' ? 'trash-2' : 'info'}"></i>`;
+            document.getElementById('modalConfirmBtn').onclick = () => { action(); closeCustomModal(); };
+            document.getElementById('customModal').classList.remove('hidden'); lucide.createIcons();
+        }
+
         async function adjustStock(name, cat, type, unit, delta) {
             const { db, collection, addDoc } = window.pelindoSync;
             await addDoc(collection(db, "pelindo_inventory"), {
                 name, cat, type, unit, qty: Math.abs(delta), price: 0,
                 statusText: delta > 0 ? "KOREKSI (+)" : "KOREKSI (-)",
                 mainStatus: delta > 0 ? "MASUK" : "KELUAR", subType: "KOREKSI",
-                detail: `ADJUST MANUAL (${delta > 0 ? '+' : ''}${delta})`,
+                detail: `PENYESUAIAN MANUAL (${delta > 0 ? '+' : ''}${delta})`,
                 createdAt: Date.now(),
                 timestamp: new Date().toLocaleString('id-ID', {day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit'}).toUpperCase()
             });
-            showToast("DATA DISINKRON");
+            showToast("STOK DIPERBARUI");
         }
 
         function handleStatusChange() { document.getElementById('outOptions').classList.toggle('hidden', document.getElementById('itemStatus').value !== 'KELUAR'); }
@@ -382,23 +395,14 @@
         }
 
         document.getElementById('inventoryForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const { db, collection, addDoc } = window.pelindoSync;
+            e.preventDefault(); const { db, collection, addDoc } = window.pelindoSync;
             const status = document.getElementById('itemStatus').value;
             const sub = status === 'KELUAR' ? document.querySelector('input[name="subStatus"]:checked').value : null;
             let detail = "-";
             if(sub === 'DIPINJAM') {
-                const bName = document.getElementById('borrowerName').value.toUpperCase() || "STAF";
-                const bDate = document.getElementById('borrowDate').value || "-";
-                const pDate = document.getElementById('plannedReturnDate').value || "-";
-                detail = `PEMINJAM: ${bName} | PINJAM: ${bDate} | KEMBALI: ${pDate}`;
-            } else if(sub === 'INSTALASI') {
-                const tech = document.getElementById('installTech').value.toUpperCase() || "TEKNISI";
-                const loc = document.getElementById('installLoc').value.toUpperCase() || "LOKASI";
-                detail = `TEKNISI: ${tech} | LOKASI: ${loc}`;
-            }
-            const ext = document.getElementById('extraNote').value;
-            if(ext) detail += ` | CAT: ${ext}`;
+                detail = `PEMINJAM: ${document.getElementById('borrowerName').value.toUpperCase()} | PINJAM: ${document.getElementById('borrowDate').value} | KEMBALI: ${document.getElementById('plannedReturnDate').value}`;
+            } else if(sub === 'INSTALASI') detail = `TEKNISI: ${document.getElementById('installTech').value.toUpperCase()} | LOKASI: ${document.getElementById('installLoc').value.toUpperCase()}`;
+            const ext = document.getElementById('extraNote').value; if(ext) detail += ` | CAT: ${ext}`;
 
             await addDoc(collection(db, "pelindo_inventory"), {
                 name: document.getElementById('itemName').value.toUpperCase(),
@@ -415,12 +419,7 @@
             e.target.reset(); handleStatusChange(); showToast("DATA TERSIMPAN");
         });
 
-        async function deleteItem(id) {
-            const { db, doc, deleteDoc } = window.pelindoSync;
-            await deleteDoc(doc(db, "pelindo_inventory", id));
-            showToast("DATA DIHAPUS");
-        }
-
+        async function deleteItem(id) { const { db, doc, deleteDoc } = window.pelindoSync; await deleteDoc(doc(db, "pelindo_inventory", id)); showToast("DATA DIHAPUS"); }
         async function saveReturn() {
             const date = document.getElementById('modalDateEntry').value; if(!date) return;
             const item = dbList.find(x => x.id === curId);
@@ -450,7 +449,7 @@
                 let badge = i.mainStatus === 'MASUK' ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-600';
                 if(i.subType === 'DIPINJAM') badge = 'bg-blue-50 text-blue-600';
                 
-                const rowHtml = `<tr class="hover:bg-slate-50 group border-b border-slate-50 uppercase"><td class="px-10 py-6 text-left uppercase"><div class="text-slate-400 text-[9px] font-black tracking-widest">${i.timestamp}</div><div class="text-[#00aeef] text-[8px] font-black mt-1 tracking-widest">${i.cat}</div></td><td class="px-10 py-6 text-left uppercase"><div class="text-slate-800 font-extrabold text-[12px] tracking-wider">${i.name}</div><div class="text-[8px] text-slate-400 font-bold uppercase tracking-wider">${i.type}</div></td><td class="px-10 py-6 text-left uppercase"><span class="text-slate-900 font-black text-xs">${i.qty}</span> <small class="text-[9px] text-slate-400 font-bold uppercase">${i.unit}</small></td><td class="px-10 py-6 text-left uppercase"><span class="status-badge ${badge} uppercase tracking-widest">${i.statusText}</span></td><td class="px-10 py-6 text-left uppercase"><div class="text-slate-500 text-[10px] font-bold italic lowercase max-w-xs">${i.detail}</div>${i.subType === 'DIPINJAM' && !i.returnDate ? `<button onclick="openModal('${i.id}')" class="mt-3 text-[9px] font-black text-[#00aeef] border border-blue-200 px-3 py-1.5 rounded-lg bg-white shadow-sm uppercase tracking-widest active:scale-95 transition-all">Tandai Kembali</button>` : ''}${i.returnDate ? `<span class="text-[8px] font-black text-emerald-600 mt-3 block uppercase tracking-tighter italic">✔ SUDAH KEMBALI</span>` : ''}</td><td class="px-10 py-6 text-right uppercase"><button onclick="showConfirmDelete('${i.id}')" class="text-slate-200 hover:text-red-500 transition-all"><i data-lucide="trash-2" class="w-5 h-5"></i></button></td></tr>`;
+                const rowHtml = `<tr class="hover:bg-slate-50 group border-b border-slate-50"><td class="px-10 py-6 text-left"><div class="text-slate-400 text-[9px] font-black tracking-widest">${i.timestamp}</div><div class="text-[#00aeef] text-[8px] font-black mt-1 uppercase tracking-widest">${i.cat}</div></td><td class="px-10 py-6 text-left"><div class="text-slate-800 font-extrabold text-[12px] tracking-wider uppercase">${i.name}</div><div class="text-[8px] text-slate-400 font-bold uppercase tracking-wider">${i.type}</div></td><td class="px-10 py-6 text-left"><span class="text-slate-900 font-black text-xs uppercase">${i.qty}</span> <small class="text-[9px] text-slate-400 font-bold uppercase">${i.unit}</small></td><td class="px-10 py-6 text-left"><span class="status-badge ${badge} uppercase tracking-widest">${i.statusText}</span></td><td class="px-10 py-6 text-left"><div class="text-slate-500 text-[10px] font-bold italic lowercase max-w-xs">${i.detail}</div>${i.subType === 'DIPINJAM' && !i.returnDate ? `<button onclick="openModal('${i.id}')" class="mt-3 text-[9px] font-black text-[#00aeef] border border-blue-200 px-3 py-1.5 rounded-lg bg-white shadow-sm uppercase tracking-widest active:scale-95">Tandai Kembali</button>` : ''}${i.returnDate ? `<span class="text-[8px] font-black text-emerald-600 mt-3 block uppercase tracking-tighter italic">✔ SUDAH KEMBALI</span>` : ''}</td><td class="px-10 py-6 text-right"><button onclick="showConfirmDelete('${i.id}')" class="text-slate-200 hover:text-red-500 transition-all"><i data-lucide="trash-2" class="w-5 h-5"></i></button></td></tr>`;
 
                 if (list) list.innerHTML += rowHtml;
                 if (borrowList && i.subType === 'DIPINJAM' && !i.returnDate) borrowList.innerHTML += rowHtml;
@@ -458,13 +457,11 @@
                     const rowVal = (i.qty || 0) * (i.price || 0);
                     totalBudget += rowVal;
                     budgetMap[i.cat] += rowVal;
-                    if (budgetList) budgetList.innerHTML += `<tr class="border-b border-slate-50 uppercase"><td class="px-10 py-5 text-left uppercase"><div class="text-slate-800 text-xs tracking-wider uppercase">${i.name}</div><div class="text-[8px] text-slate-400 tracking-widest uppercase">${i.timestamp}</div></td><td class="px-10 py-5 text-left font-black tracking-wider uppercase">${i.qty} ${i.unit}</td><td class="px-10 py-5 text-left text-slate-400 uppercase">Rp ${(i.price || 0).toLocaleString()}</td><td class="px-10 py-5 text-left text-emerald-600 font-black tracking-widest uppercase">Rp ${rowVal.toLocaleString()}</td></tr>`;
+                    if (budgetList) budgetList.innerHTML += `<tr class="border-b border-slate-50 uppercase"><td class="px-10 py-5 text-left"><div class="text-slate-800 text-xs tracking-wider uppercase uppercase uppercase">${i.name}</div><div class="text-[8px] text-slate-400 tracking-widest uppercase uppercase uppercase">${i.timestamp}</div></td><td class="px-10 py-5 text-left font-black tracking-wider uppercase uppercase">${i.qty} ${i.unit}</td><td class="px-10 py-5 text-left text-slate-400 uppercase uppercase">Rp ${(i.price || 0).toLocaleString()}</td><td class="px-10 py-5 text-left text-emerald-600 font-black tracking-widest uppercase uppercase uppercase uppercase">Rp ${rowVal.toLocaleString()}</td></tr>`;
                 }
             });
 
-            updateVisualCharts(stockMap);
-            renderFullStockView(stockMap);
-            renderBudgetMetrics(totalBudget, budgetMap);
+            updateVisualCharts(stockMap); renderFullStockView(stockMap); renderBudgetMetrics(totalBudget, budgetMap);
             if (typeof lucide !== 'undefined') lucide.createIcons();
             if (document.getElementById('counter')) document.getElementById('counter').innerText = `${dbList.length} ENTRI`; 
         }
@@ -472,15 +469,13 @@
         function updateVisualCharts(stockMap) {
             const dataPerCat = { ELECTRICAL: { labels: [], values: [], low: 0 }, MECHANICAL: { labels: [], values: [], low: 0 }, PLUMBING: { labels: [], values: [], low: 0 } };
             Object.keys(stockMap).forEach(name => {
-                const item = stockMap[name];
-                const balance = item.in - item.out;
+                const item = stockMap[name]; const balance = item.in - item.out;
                 if(dataPerCat[item.cat]) {
                     dataPerCat[item.cat].labels.push(name.length > 8 ? name.substring(0,8)+'..' : name);
                     dataPerCat[item.cat].values.push(balance);
                     if (balance < 5) dataPerCat[item.cat].low++;
                 }
             });
-
             const configs = [{ id: 'chartElectrical', cat: 'ELECTRICAL', color: '#0ea5e9' }, { id: 'chartMechanical', cat: 'MECHANICAL', color: '#f97316' }, { id: 'chartPlumbing', cat: 'PLUMBING', color: '#10b981' }];
             configs.forEach(conf => {
                 const badge = document.getElementById(`badge-${conf.cat}`);
@@ -488,8 +483,7 @@
                 const ctx = document.getElementById(conf.id).getContext('2d');
                 if (chartInstances[conf.id]) chartInstances[conf.id].destroy();
                 chartInstances[conf.id] = new Chart(ctx, {
-                    type: 'bar',
-                    data: { labels: dataPerCat[conf.cat].labels, datasets: [{ data: dataPerCat[conf.cat].values, backgroundColor: conf.color, borderRadius: 6, barThickness: 15 }] },
+                    type: 'bar', data: { labels: dataPerCat[conf.cat].labels, datasets: [{ data: dataPerCat[conf.cat].values, backgroundColor: conf.color, borderRadius: 6, barThickness: 15 }] },
                     options: { maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, grid: { display: false }, ticks: { font: { size: 8 } } }, x: { grid: { display: false }, ticks: { font: { size: 7 } } } } }
                 });
             });
@@ -497,30 +491,25 @@
 
         function renderFullStockView(stockMap) {
             const cats = ['MECHANICAL', 'ELECTRICAL', 'PLUMBING'];
-            const cont = document.getElementById('stockGroupedContent'); 
-            if (!cont) return;
-            cont.innerHTML = '';
+            const cont = document.getElementById('stockGroupedContent'); if (!cont) return; cont.innerHTML = '';
             cats.forEach(c => {
                 const items = Object.keys(stockMap).filter(k => stockMap[k].cat === c);
                 let itemsHtml = items.map(k => {
                     const balance = stockMap[k].in - stockMap[k].out;
-                    return `<div class="bg-white p-6 rounded-[2rem] border border-slate-50 shadow-sm flex items-center justify-between group transition-all uppercase"><div class="text-left uppercase"><span class="text-[8px] font-black text-[#00aeef] tracking-[0.3em] block mb-1 uppercase">${stockMap[k].cat}</span><h4 class="text-xs font-black text-slate-700 uppercase tracking-widest">${k}</h4><p class="text-[9px] text-slate-400 font-bold uppercase">${stockMap[k].type}</p></div><div class="flex flex-col items-end gap-3 uppercase"><div class="text-right uppercase uppercase"><span class="text-2xl font-black text-[#004a99] uppercase tracking-widest uppercase">${balance}</span><span class="text-[10px] text-slate-500 font-black ml-1 uppercase tracking-widest uppercase uppercase">${stockMap[k].unit}</span></div><div class="flex items-center gap-1 uppercase uppercase"><button onclick="adjustStock('${k}','${stockMap[k].cat}','${stockMap[k].type}','${stockMap[k].unit}', -1)" class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-red-50 hover:text-red-600 transition-all shadow-sm active:scale-90 uppercase uppercase"><i data-lucide="minus" class="w-4 h-4 uppercase"></i></button><button onclick="adjustStock('${k}','${stockMap[k].cat}','${stockMap[k].type}','${stockMap[k].unit}', 1)" class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-emerald-50 hover:text-emerald-600 transition-all shadow-sm active:scale-90 uppercase uppercase"><i data-lucide="plus" class="w-4 h-4 uppercase"></i></button></div></div></div>`;
+                    return `<div class="bg-white p-6 rounded-[2rem] border border-slate-50 shadow-sm flex items-center justify-between group transition-all uppercase"><div class="text-left"><span class="text-[8px] font-black text-[#00aeef] tracking-[0.3em] block mb-1 uppercase">${stockMap[k].cat}</span><h4 class="text-xs font-black text-slate-700 uppercase tracking-widest uppercase uppercase">${k}</h4><p class="text-[9px] text-slate-400 font-bold uppercase uppercase">${stockMap[k].type}</p></div><div class="flex flex-col items-end gap-3 uppercase"><div class="text-right uppercase"><span class="text-2xl font-black text-[#004a99] uppercase tracking-widest uppercase">${balance}</span><span class="text-[10px] text-slate-500 font-black ml-1 uppercase tracking-widest uppercase uppercase">${stockMap[k].unit}</span></div><div class="flex items-center gap-1 uppercase uppercase"><button onclick="adjustStock('${k}','${stockMap[k].cat}','${stockMap[k].type}','${stockMap[k].unit}', -1)" class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-red-50 hover:text-red-600 transition-all shadow-sm active:scale-90 uppercase"><i data-lucide="minus" class="w-4 h-4 uppercase"></i></button><button onclick="adjustStock('${k}','${stockMap[k].cat}','${stockMap[k].type}','${stockMap[k].unit}', 1)" class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-emerald-50 hover:text-emerald-600 transition-all shadow-sm active:scale-90 uppercase"><i data-lucide="plus" class="w-4 h-4 uppercase"></i></button></div></div></div>`;
                 }).join('');
-                cont.innerHTML += `<div class="space-y-6 uppercase uppercase"><div class="flex items-center gap-4 px-4 uppercase uppercase"><h3 class="text-xs font-black text-[#004a99] tracking-[0.4em] whitespace-nowrap uppercase uppercase">${c} UNIT</h3><div class="h-0.5 w-full bg-slate-100 rounded-full uppercase uppercase"></div></div><div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 px-2 uppercase uppercase">${itemsHtml || '<p class="text-[9px] text-slate-300 px-4 italic tracking-widest uppercase uppercase">BELUM ADA DATA</p>'}</div></div>`;
+                cont.innerHTML += `<div class="space-y-6 uppercase"><div class="flex items-center gap-4 px-4 uppercase"><h3 class="text-xs font-black text-[#004a99] tracking-[0.4em] whitespace-nowrap uppercase uppercase">${c} UNIT</h3><div class="h-0.5 w-full bg-slate-100 rounded-full uppercase"></div></div><div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 px-2 uppercase uppercase">${itemsHtml || '<p class="text-[9px] text-slate-300 px-4 italic tracking-widest uppercase uppercase">BELUM ADA DATA</p>'}</div></div>`;
             });
         }
 
         function renderBudgetMetrics(total, map) {
-            const cont = document.getElementById('budgetMetrics');
-            if (!cont) return;
-            cont.innerHTML = `<div class="bg-white p-8 rounded-[2.5rem] border-l-8 border-emerald-500 shadow-sm uppercase uppercase"><p class="text-[9px] font-black text-slate-400 tracking-[0.4em] uppercase uppercase">Total Pengadaan</p><h4 class="text-2xl font-black text-emerald-600 mt-2 tracking-widest uppercase uppercase uppercase">Rp ${total.toLocaleString()}</h4></div><div class="bg-white p-8 rounded-[2.5rem] border-l-8 border-blue-500 shadow-sm uppercase uppercase"><p class="text-[9px] font-black text-slate-400 tracking-[0.4em] uppercase uppercase uppercase">Electrical Cost</p><h4 class="text-xl font-black text-blue-600 mt-2 tracking-widest uppercase uppercase uppercase uppercase">Rp ${map.ELECTRICAL.toLocaleString()}</h4></div><div class="bg-white p-8 rounded-[2.5rem] border-l-8 border-orange-500 shadow-sm uppercase uppercase"><p class="text-[9px] font-black text-slate-400 tracking-[0.4em] uppercase uppercase uppercase uppercase uppercase">Mechanical Cost</p><h4 class="text-xl font-black text-orange-600 mt-2 tracking-widest uppercase uppercase uppercase uppercase uppercase uppercase uppercase">Rp ${map.MECHANICAL.toLocaleString()}</h4></div>`;
+            const cont = document.getElementById('budgetMetrics'); if (!cont) return;
+            cont.innerHTML = `<div class="bg-white p-8 rounded-[2.5rem] border-l-8 border-emerald-500 shadow-sm uppercase uppercase"><p class="text-[9px] font-black text-slate-400 tracking-[0.4em] uppercase uppercase uppercase uppercase">Total Pengadaan</p><h4 class="text-2xl font-black text-emerald-600 mt-2 tracking-widest uppercase uppercase uppercase uppercase uppercase uppercase uppercase">Rp ${total.toLocaleString()}</h4></div><div class="bg-white p-8 rounded-[2.5rem] border-l-8 border-blue-500 shadow-sm uppercase uppercase"><p class="text-[9px] font-black text-slate-400 tracking-[0.4em] uppercase uppercase uppercase uppercase uppercase">Electrical Cost</p><h4 class="text-xl font-black text-blue-600 mt-2 tracking-widest uppercase uppercase uppercase uppercase uppercase uppercase uppercase uppercase">Rp ${map.ELECTRICAL.toLocaleString()}</h4></div><div class="bg-white p-8 rounded-[2.5rem] border-l-8 border-orange-500 shadow-sm uppercase uppercase"><p class="text-[9px] font-black text-slate-400 tracking-[0.4em] uppercase uppercase uppercase uppercase uppercase uppercase">Mechanical Cost</p><h4 class="text-xl font-black text-orange-600 mt-2 tracking-widest uppercase uppercase uppercase uppercase uppercase uppercase uppercase uppercase uppercase">Rp ${map.MECHANICAL.toLocaleString()}</h4></div>`;
         }
 
         function showToast(m, bg = "bg-[#004a99]") { 
-            const t = document.getElementById('toast'); 
-            const msg = document.getElementById('toastMessage');
-            if (msg) msg.innerText = m.toUpperCase(); 
-            if (t) { t.className = t.className.replace(/bg-\[[^\]]+\]/, bg); t.classList.replace('translate-y-32', 'translate-y-0'); t.classList.replace('opacity-0', 'opacity-100'); setTimeout(() => { t.classList.replace('translate-y-0', 'translate-y-32'); t.classList.replace('opacity-100', 'opacity-0'); }, 3000); }
+            const t = document.getElementById('toast'); const msg = document.getElementById('toastMessage'); if (msg) msg.innerText = m.toUpperCase(); 
+            if (t) { t.classList.replace('translate-y-32', 'translate-y-0'); t.classList.replace('opacity-0', 'opacity-100'); setTimeout(() => { t.classList.replace('translate-y-0', 'translate-y-32'); t.classList.replace('opacity-100', 'opacity-0'); }, 3000); }
         }
 
         function exportToExcel() { const ws = XLSX.utils.json_to_sheet(dbList.map(i => ({ 'WAKTU': i.timestamp, 'KATEGORI': i.cat, 'BARANG': i.name, 'QTY': i.qty, 'SATUAN': i.unit, 'STATUS': i.statusText, 'DETAIL': i.detail }))); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Stok"); XLSX.writeFile(wb, `PELINDO_REPORT.xlsx`); }
