@@ -3,58 +3,53 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PELINDO T2 - INVENTORY SYSTEM</title>
+    <title>PELINDO T2 - INVENTORY & MONITORING</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;700;800&display=swap');
         
-        :root {
-            --bg-deep: #0f172a;
-            --bg-card: #1e293b;
-            --accent: #38bdf8;
-        }
-
         body {
-            font-family: 'Inter', sans-serif;
-            background-color: var(--bg-deep);
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #0f172a;
             color: #f1f5f9;
             text-transform: uppercase;
         }
 
-        .glass-card {
+        .glass-panel {
             background: rgba(30, 41, 59, 0.7);
-            backdrop-filter: blur(10px);
+            backdrop-filter: blur(12px);
             border: 1px solid rgba(255, 255, 255, 0.05);
-            border-radius: 1.5rem;
+            border-radius: 1.25rem;
         }
 
-        .status-badge-in { background: rgba(16, 185, 129, 0.1); color: #10b981; }
-        .status-badge-out { background: rgba(239, 68, 68, 0.1); color: #ef4444; }
-        
-        .input-dark {
+        .input-premium {
             background: rgba(15, 23, 42, 0.5);
             border: 1px solid rgba(255, 255, 255, 0.1);
             color: white;
-            transition: all 0.3s ease;
+            transition: all 0.2s ease;
         }
-        
-        .input-dark:focus {
-            border-color: var(--accent);
+
+        .input-premium:focus {
+            border-color: #38bdf8;
             outline: none;
             box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.2);
         }
 
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: var(--bg-deep); }
+        .status-in { background: rgba(16, 185, 129, 0.1); color: #10b981; }
+        .status-out { background: rgba(239, 68, 68, 0.1); color: #ef4444; }
+
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-track { background: #0f172a; }
         ::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
     </style>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, deleteDoc, doc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, deleteDoc, doc, onSnapshot, query, orderBy, writeBatch, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         const firebaseConfig = JSON.parse(__firebase_config);
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'pelindo-t2-v2';
@@ -62,116 +57,136 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        window.fb = { db, auth, appId, collection, addDoc, deleteDoc, doc, onSnapshot, query, orderBy, signInAnonymously, signInWithCustomToken };
+        window.fb = { db, auth, appId, collection, addDoc, deleteDoc, doc, onSnapshot, query, orderBy, signInAnonymously, signInWithCustomToken, writeBatch, getDocs };
     </script>
 </head>
-<body class="min-h-screen">
+<body class="min-h-screen pb-10">
 
     <!-- Header -->
-    <header class="border-b border-white/5 bg-slate-900/50 sticky top-0 z-50 backdrop-blur-md">
+    <header class="border-b border-white/5 bg-slate-900/60 sticky top-0 z-50 backdrop-blur-md">
         <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
             <div class="flex items-center gap-4">
-                <div class="w-10 h-10 bg-sky-500 rounded-xl flex items-center justify-center font-black italic text-white shadow-lg shadow-sky-500/20">T2</div>
+                <div class="w-10 h-10 bg-sky-600 rounded-lg flex items-center justify-center font-black italic text-white shadow-lg">T2</div>
                 <div>
-                    <h1 class="text-sm font-black tracking-tighter">PELINDO INVENTORY</h1>
-                    <p class="text-[10px] text-sky-400 font-bold">TERMINAL 2 MONITORING</p>
+                    <h1 class="text-sm font-extrabold tracking-tight">PELINDO TERMINAL 2</h1>
+                    <p class="text-[10px] text-sky-400 font-bold">INVENTORY MONITORING SYSTEM</p>
                 </div>
             </div>
-            <div class="flex gap-2">
-                <button onclick="exportToExcel()" class="p-2 hover:bg-white/5 rounded-lg text-slate-400 transition-all">
-                    <i data-lucide="download" class="w-5 h-5"></i>
+            <div class="flex items-center gap-3">
+                <button onclick="exportToExcel()" class="flex items-center gap-2 bg-emerald-600/20 text-emerald-400 px-4 py-2 rounded-lg text-[10px] font-bold hover:bg-emerald-600/30 transition-all border border-emerald-600/30">
+                    <i data-lucide="download" class="w-3.5 h-3.5"></i> EXPORT EXCEL
+                </button>
+                <button onclick="toggleResetModal()" class="flex items-center gap-2 bg-red-600/20 text-red-400 px-4 py-2 rounded-lg text-[10px] font-bold hover:bg-red-600/30 transition-all border border-red-600/30">
+                    <i data-lucide="refresh-ccw" class="w-3.5 h-3.5"></i> RESET SEMUA
                 </button>
             </div>
         </div>
     </header>
 
-    <main class="max-w-7xl mx-auto px-6 py-8">
-        <!-- Stats Grid -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <div class="glass-card p-6 border-l-4 border-sky-500">
-                <p class="text-[10px] font-bold text-slate-400 mb-1">ELECTRICAL TOTAL</p>
-                <h2 id="total-elec" class="text-xl font-black italic text-white">RP 0</h2>
-            </div>
-            <div class="glass-card p-6 border-l-4 border-orange-500">
-                <p class="text-[10px] font-bold text-slate-400 mb-1">MECHANICAL TOTAL</p>
-                <h2 id="total-mech" class="text-xl font-black italic text-white">RP 0</h2>
-            </div>
-            <div class="glass-card p-6 border-l-4 border-emerald-500">
-                <p class="text-[10px] font-bold text-slate-400 mb-1">PLUMBING TOTAL</p>
-                <h2 id="total-plum" class="text-xl font-black italic text-white">RP 0</h2>
-            </div>
-        </div>
-
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
-            <!-- Form Section -->
+    <main class="max-w-7xl mx-auto px-6 mt-8">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            
+            <!-- Left: Stats & Form -->
             <div class="lg:col-span-4 space-y-6">
-                <div class="glass-card p-6">
-                    <h3 class="text-xs font-black mb-6 flex items-center gap-2 text-sky-400">
-                        <i data-lucide="plus-circle" class="w-4 h-4"></i> INPUT DATA BARU
+                <!-- Stats Summary -->
+                <div class="glass-panel p-6 space-y-4">
+                    <h3 class="text-[10px] font-black text-slate-400 tracking-widest flex items-center gap-2">
+                        <i data-lucide="pie-chart" class="w-4 h-4"></i> RINGKASAN BIAYA
                     </h3>
-                    <form id="itemForm" class="space-y-4">
+                    <div class="space-y-3">
+                        <div class="flex justify-between items-center p-3 bg-white/5 rounded-xl border-l-4 border-sky-500">
+                            <span class="text-[9px] font-bold text-slate-400">ELECTRICAL</span>
+                            <span id="stat-elec" class="text-xs font-black">RP 0</span>
+                        </div>
+                        <div class="flex justify-between items-center p-3 bg-white/5 rounded-xl border-l-4 border-orange-500">
+                            <span class="text-[9px] font-bold text-slate-400">MECHANICAL</span>
+                            <span id="stat-mech" class="text-xs font-black">RP 0</span>
+                        </div>
+                        <div class="flex justify-between items-center p-3 bg-white/5 rounded-xl border-l-4 border-emerald-500">
+                            <span class="text-[9px] font-bold text-slate-400">PLUMBING</span>
+                            <span id="stat-plum" class="text-xs font-black">RP 0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Input Form -->
+                <div class="glass-panel p-6">
+                    <h3 class="text-[10px] font-black text-sky-400 tracking-widest mb-6 flex items-center gap-2">
+                        <i data-lucide="edit-3" class="w-4 h-4"></i> INPUT DATA TRANSAKSI
+                    </h3>
+                    <form id="inventoryForm" class="space-y-4">
                         <div class="space-y-1">
-                            <label class="text-[9px] font-bold text-slate-500 ml-1">KATEGORI</label>
-                            <select id="category" class="w-full input-dark rounded-xl p-3 text-[10px] font-bold" required>
+                            <label class="text-[9px] font-bold text-slate-500 ml-1">KATEGORI ITEM</label>
+                            <select id="category" class="w-full input-premium rounded-xl p-3 text-[10px] font-bold" required>
                                 <option value="ELECTRICAL">ELECTRICAL</option>
                                 <option value="MECHANICAL">MECHANICAL</option>
                                 <option value="PLUMBING">PLUMBING</option>
                             </select>
                         </div>
                         <div class="space-y-1">
-                            <label class="text-[9px] font-bold text-slate-500 ml-1">NAMA BARANG</label>
-                            <input type="text" id="name" class="w-full input-dark rounded-xl p-3 text-[10px] font-bold" placeholder="NAMA BARANG..." required>
+                            <label class="text-[9px] font-bold text-slate-500 ml-1">NAMA MATERIAL</label>
+                            <input type="text" id="name" class="w-full input-premium rounded-xl p-3 text-[10px] font-bold" placeholder="CONTOH: KABEL NYY 4X16MM" required>
                         </div>
                         <div class="grid grid-cols-2 gap-4">
                             <div class="space-y-1">
                                 <label class="text-[9px] font-bold text-slate-500 ml-1">QTY</label>
-                                <input type="number" id="qty" class="w-full input-dark rounded-xl p-3 text-[10px] font-bold" placeholder="0" required>
+                                <input type="number" id="qty" class="w-full input-premium rounded-xl p-3 text-[10px] font-bold" placeholder="0" required>
                             </div>
                             <div class="space-y-1">
                                 <label class="text-[9px] font-bold text-slate-500 ml-1">SATUAN</label>
-                                <input type="text" id="unit" class="w-full input-dark rounded-xl p-3 text-[10px] font-bold" placeholder="PCS/SET/ROLL">
+                                <input type="text" id="unit" class="w-full input-premium rounded-xl p-3 text-[10px] font-bold" placeholder="PCS/ROLL">
                             </div>
                         </div>
                         <div class="space-y-1">
                             <label class="text-[9px] font-bold text-slate-500 ml-1">HARGA SATUAN (RP)</label>
-                            <input type="number" id="price" class="w-full input-dark rounded-xl p-3 text-[10px] font-bold" placeholder="0">
+                            <input type="number" id="price" class="w-full input-premium rounded-xl p-3 text-[10px] font-bold" placeholder="0">
                         </div>
                         <div class="space-y-1">
-                            <label class="text-[9px] font-bold text-slate-500 ml-1">STATUS TRANSAKSI</label>
-                            <select id="status" class="w-full input-dark rounded-xl p-3 text-[10px] font-bold">
+                            <label class="text-[9px] font-bold text-slate-500 ml-1">JENIS TRANSAKSI</label>
+                            <select id="status" class="w-full input-premium rounded-xl p-3 text-[10px] font-bold">
                                 <option value="MASUK">BARANG MASUK (+)</option>
                                 <option value="KELUAR">BARANG KELUAR (-)</option>
                             </select>
                         </div>
-                        <button type="submit" class="w-full bg-sky-500 hover:bg-sky-400 text-white font-black text-[10px] py-4 rounded-xl transition-all shadow-lg shadow-sky-500/20 mt-4 uppercase tracking-widest">
-                            Simpan Data
+                        <button type="submit" class="w-full bg-sky-600 hover:bg-sky-500 text-white font-black text-[10px] py-4 rounded-xl transition-all shadow-lg shadow-sky-600/20 mt-4 tracking-widest">
+                            SIMPAN TRANSAKSI
                         </button>
                     </form>
                 </div>
             </div>
 
-            <!-- Table Section -->
-            <div class="lg:col-span-8">
-                <div class="glass-card overflow-hidden">
+            <!-- Right: Chart & Table -->
+            <div class="lg:col-span-8 space-y-6">
+                <!-- Activity Chart (Only New In/Out) -->
+                <div class="glass-panel p-6">
+                    <h3 class="text-[10px] font-black text-slate-400 tracking-widest mb-4 flex items-center justify-between">
+                        <span><i data-lucide="bar-chart-3" class="w-4 h-4 inline mr-2"></i>AKTIVITAS TERBARU (MASUK VS KELUAR)</span>
+                        <span class="text-[8px] bg-sky-500/10 text-sky-400 px-2 py-1 rounded">LIVE MONITORING</span>
+                    </h3>
+                    <div class="h-[200px] w-full">
+                        <canvas id="activityChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Data Table -->
+                <div class="glass-panel overflow-hidden">
                     <div class="p-6 border-b border-white/5 flex justify-between items-center bg-white/5">
-                        <h3 class="text-xs font-black tracking-widest">LOG INVENTARIS</h3>
-                        <div class="flex gap-2">
-                            <div id="loading" class="hidden text-sky-400 animate-pulse text-[10px] font-bold">MEMPROSES...</div>
-                        </div>
+                        <h3 class="text-[10px] font-black tracking-widest">RIWAYAT LOG INVENTARIS</h3>
+                        <div id="loading" class="hidden text-sky-400 animate-pulse text-[9px] font-bold">MENYIMPAN...</div>
                     </div>
                     <div class="overflow-x-auto">
                         <table class="w-full text-left border-collapse">
                             <thead>
-                                <tr class="text-[9px] font-black text-slate-500 uppercase tracking-tighter border-b border-white/5">
-                                    <th class="p-4">TANGGAL</th>
-                                    <th class="p-4">INFORMASI BARANG</th>
-                                    <th class="p-4">QTY</th>
-                                    <th class="p-4 text-right">TOTAL (RP)</th>
-                                    <th class="p-4 text-center">AKSI</th>
+                                <tr class="text-[9px] font-black text-slate-500 border-b border-white/5">
+                                    <th class="p-4">WAKTU</th>
+                                    <th class="p-4">ITEM & KATEGORI</th>
+                                    <th class="p-4">STATUS</th>
+                                    <th class="p-4 text-right">JUMLAH (RP)</th>
+                                    <th class="p-4 text-center">OPSI</th>
                                 </tr>
                             </thead>
                             <tbody id="inventory-list" class="text-[10px] font-semibold divide-y divide-white/5">
-                                <!-- Data rows -->
+                                <!-- Data rows injected here -->
                             </tbody>
                         </table>
                     </div>
@@ -180,15 +195,31 @@
         </div>
     </main>
 
-    <div id="toast" class="fixed bottom-6 right-6 translate-y-20 opacity-0 transition-all duration-500 z-[100]">
-        <div class="bg-slate-800 border border-sky-500 text-white px-6 py-3 rounded-2xl shadow-2xl flex items-center gap-3">
-            <div class="w-2 h-2 rounded-full bg-sky-500 animate-ping"></div>
-            <span id="toast-msg" class="text-[10px] font-black tracking-widest uppercase">Pesan Berhasil</span>
+    <!-- Reset Confirmation Modal -->
+    <div id="resetModal" class="fixed inset-0 z-[100] hidden flex items-center justify-center p-6 bg-slate-950/80 backdrop-blur-sm">
+        <div class="glass-panel max-w-sm w-full p-8 text-center border-red-500/30">
+            <div class="w-16 h-16 bg-red-600/20 text-red-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i data-lucide="alert-triangle" class="w-8 h-8"></i>
+            </div>
+            <h2 class="font-black text-lg mb-2">HAPUS SEMUA DATA?</h2>
+            <p class="text-[10px] text-slate-400 mb-8 leading-relaxed">Tindakan ini akan menghapus seluruh riwayat inventaris secara permanen. Data tidak dapat dipulihkan.</p>
+            <div class="grid grid-cols-2 gap-4">
+                <button onclick="toggleResetModal()" class="py-3 bg-white/5 rounded-xl font-bold text-[10px] hover:bg-white/10 transition-all">BATAL</button>
+                <button onclick="handleResetAll()" class="py-3 bg-red-600 text-white rounded-xl font-black text-[10px] hover:bg-red-500 transition-all shadow-lg shadow-red-600/20">YA, RESET SEMUA</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 translate-y-20 opacity-0 transition-all duration-500 z-[110]">
+        <div class="bg-slate-900 border border-sky-500/50 text-white px-8 py-4 rounded-2xl shadow-2xl flex items-center gap-3">
+            <span id="toast-msg" class="text-[10px] font-black tracking-widest">TRANSAKSI BERHASIL</span>
         </div>
     </div>
 
     <script>
         let inventory = [];
+        let chartInstance = null;
 
         async function init() {
             lucide.createIcons();
@@ -201,71 +232,119 @@
                     await signInAnonymously(auth);
                 }
 
-                const colRef = collection(db, 'artifacts', appId, 'public', 'data', 'inventory_main');
+                const colRef = collection(db, 'artifacts', appId, 'public', 'data', 'inventory_v2');
                 const q = query(colRef, orderBy("createdAt", "desc"));
                 
                 onSnapshot(q, (snapshot) => {
                     inventory = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                     render();
-                });
+                    updateChart();
+                }, (err) => console.error("Snapshot error:", err));
             } catch (err) {
-                console.error("Init Error:", err);
-                showToast("Gagal menyambung ke database", true);
+                console.error("Auth error:", err);
             }
         }
 
         function render() {
             const list = document.getElementById('inventory-list');
-            const tElec = document.getElementById('total-elec');
-            const tMech = document.getElementById('total-mech');
-            const tPlum = document.getElementById('total-plum');
+            const sElec = document.getElementById('stat-elec');
+            const sMech = document.getElementById('stat-mech');
+            const sPlum = document.getElementById('stat-plum');
             
             list.innerHTML = '';
-            let sElec = 0, sMech = 0, sPlum = 0;
+            let totals = { ELECTRICAL: 0, MECHANICAL: 0, PLUMBING: 0 };
 
             inventory.forEach(item => {
-                const total = (item.price || 0) * (item.qty || 0);
-                if (item.category === 'ELECTRICAL') sElec += total;
-                if (item.category === 'MECHANICAL') sMech += total;
-                if (item.category === 'PLUMBING') sPlum += total;
+                const totalRow = (item.price || 0) * (item.qty || 0);
+                totals[item.category] += totalRow;
 
                 list.innerHTML += `
                     <tr class="hover:bg-white/5 transition-colors group">
-                        <td class="p-4 text-slate-500">${item.timestamp}</td>
+                        <td class="p-4 text-slate-500 tabular-nums">${item.timestamp}</td>
                         <td class="p-4">
-                            <div class="font-black text-white group-hover:text-sky-400 transition-colors">${item.name}</div>
+                            <div class="font-bold text-white">${item.name}</div>
                             <div class="text-[8px] text-slate-500">${item.category}</div>
                         </td>
                         <td class="p-4">
-                            <span class="px-2 py-1 rounded-md font-black ${item.status === 'MASUK' ? 'status-badge-in' : 'status-badge-out'}">
-                                ${item.status === 'MASUK' ? '+' : '-'}${item.qty} ${item.unit || 'PCS'}
+                            <span class="px-2.5 py-1 rounded-md font-black text-[9px] ${item.status === 'MASUK' ? 'status-in' : 'status-out'}">
+                                ${item.status === 'MASUK' ? 'IN' : 'OUT'}
                             </span>
                         </td>
-                        <td class="p-4 text-right font-black italic">
-                            ${total.toLocaleString('id-ID')}
+                        <td class="p-4 text-right font-black italic tabular-nums">
+                            ${totalRow.toLocaleString('id-ID')}
                         </td>
                         <td class="p-4 text-center">
                             <button onclick="deleteItem('${item.id}')" class="p-2 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100">
-                                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
                             </button>
                         </td>
                     </tr>
                 `;
             });
 
-            tElec.innerText = `RP ${sElec.toLocaleString('id-ID')}`;
-            tMech.innerText = `RP ${sMech.toLocaleString('id-ID')}`;
-            tPlum.innerText = `RP ${sPlum.toLocaleString('id-ID')}`;
+            sElec.innerText = `RP ${totals.ELECTRICAL.toLocaleString('id-ID')}`;
+            sMech.innerText = `RP ${totals.MECHANICAL.toLocaleString('id-ID')}`;
+            sPlum.innerText = `RP ${totals.PLUMBING.toLocaleString('id-ID')}`;
             lucide.createIcons();
         }
 
-        document.getElementById('itemForm').addEventListener('submit', async (e) => {
+        function updateChart() {
+            const ctx = document.getElementById('activityChart').getContext('2d');
+            
+            // Filter only the last 10 activities to show movement
+            const recentData = [...inventory].reverse().slice(-10);
+            const labels = recentData.map(d => d.name.substring(0, 8) + '..');
+            const inValues = recentData.map(d => d.status === 'MASUK' ? d.qty : 0);
+            const outValues = recentData.map(d => d.status === 'KELUAR' ? d.qty : 0);
+
+            if (chartInstance) chartInstance.destroy();
+
+            chartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'MASUK (+)',
+                            data: inValues,
+                            backgroundColor: '#10b981',
+                            borderRadius: 4
+                        },
+                        {
+                            label: 'KELUAR (-)',
+                            data: outValues,
+                            backgroundColor: '#ef4444',
+                            borderRadius: 4
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { 
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: { 
+                            beginAtZero: true, 
+                            grid: { color: 'rgba(255,255,255,0.05)' },
+                            ticks: { font: { size: 9 }, color: '#64748b' }
+                        },
+                        x: { 
+                            grid: { display: false },
+                            ticks: { font: { size: 8 }, color: '#64748b' }
+                        }
+                    }
+                }
+            });
+        }
+
+        document.getElementById('inventoryForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const { db, appId, collection, addDoc } = window.fb;
-            const loader = document.getElementById('loading');
-            loader.classList.remove('hidden');
+            document.getElementById('loading').classList.remove('hidden');
 
-            const data = {
+            const payload = {
                 category: document.getElementById('category').value,
                 name: document.getElementById('name').value.toUpperCase(),
                 qty: parseInt(document.getElementById('qty').value),
@@ -273,25 +352,53 @@
                 price: parseInt(document.getElementById('price').value || 0),
                 status: document.getElementById('status').value,
                 createdAt: Date.now(),
-                timestamp: new Date().toLocaleString('id-ID', { hour12: false, dateStyle: 'short', timeStyle: 'short' })
+                timestamp: new Date().toLocaleString('id-ID', { hour12: false, dateStyle: 'short', timeStyle: 'short' }).replace(/\//g, '-')
             };
 
             try {
-                await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'inventory_main'), data);
-                showToast("Data Inventaris Tersimpan");
+                await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'inventory_v2'), payload);
+                showToast("DATA TERSIMPAN");
                 e.target.reset();
             } catch (err) {
-                showToast("Error menyimpan data", true);
+                console.error(err);
+                showToast("GAGAL MENYIMPAN", true);
             } finally {
-                loader.classList.add('hidden');
+                document.getElementById('loading').classList.add('hidden');
             }
         });
 
         async function deleteItem(id) {
             const { db, appId, doc, deleteDoc: del } = window.fb;
-            if (confirm("HAPUS DATA INI?")) {
-                await del(doc(db, 'artifacts', appId, 'public', 'data', 'inventory_main', id));
-                showToast("Data Berhasil Dihapus");
+            await del(doc(db, 'artifacts', appId, 'public', 'data', 'inventory_v2', id));
+            showToast("DATA DIHAPUS");
+        }
+
+        function toggleResetModal() {
+            const m = document.getElementById('resetModal');
+            m.classList.toggle('hidden');
+        }
+
+        async function handleResetAll() {
+            const { db, appId, collection, getDocs, writeBatch } = window.fb;
+            toggleResetModal();
+            document.getElementById('loading').classList.remove('hidden');
+
+            try {
+                const colRef = collection(db, 'artifacts', appId, 'public', 'data', 'inventory_v2');
+                const snapshot = await getDocs(colRef);
+                const batch = writeBatch(db);
+                
+                snapshot.docs.forEach((doc) => {
+                    batch.delete(doc.ref);
+                });
+
+                await batch.commit();
+                showToast("DATABASE TELAH DIRESET");
+            } catch (err) {
+                console.error("Reset error:", err);
+                showToast("GAGAL RESET DATA", true);
+            } finally {
+                document.getElementById('loading').classList.add('hidden');
             }
         }
 
@@ -299,22 +406,23 @@
             const data = inventory.map(i => ({
                 TANGGAL: i.timestamp,
                 KATEGORI: i.category,
-                NAMA_BARANG: i.name,
+                NAMA_ITEM: i.name,
+                STATUS: i.status,
                 QTY: i.qty,
                 SATUAN: i.unit,
-                HARGA: i.price,
-                TOTAL: i.price * i.qty,
-                STATUS: i.status
+                HARGA_SATUAN: i.price,
+                TOTAL_BIAYA: i.price * i.qty
             }));
             const ws = XLSX.utils.json_to_sheet(data);
             const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, "Inventory");
-            XLSX.writeFile(wb, "INVENTORY_PELINDO_T2.xlsx");
+            XLSX.utils.book_append_sheet(wb, ws, "Inventory_Report");
+            XLSX.writeFile(wb, `PELINDO_T2_REPORT_${new Date().getTime()}.xlsx`);
         }
 
-        function showToast(msg, error = false) {
+        function showToast(msg, isError = false) {
             const t = document.getElementById('toast');
-            document.getElementById('toast-msg').innerText = msg;
+            const m = document.getElementById('toast-msg');
+            m.innerText = msg;
             t.classList.remove('translate-y-20', 'opacity-0');
             setTimeout(() => t.classList.add('translate-y-20', 'opacity-0'), 3000);
         }
