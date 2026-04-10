@@ -7,13 +7,17 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <title>PT PELINDO PETIKEMAS NEW MAKASSAR</title>
     
+    <!-- PWA Manifest -->
     <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" href="logo pelindo.jpg">
     
+    <!-- Library Eksternal -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/docx@7.1.0/build/index.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
     
@@ -23,17 +27,19 @@
         body { font-family: 'Inter', sans-serif; background-color: var(--pld-bg); color: #1e293b; text-transform: uppercase; overflow-x: hidden; font-size: 15px; }
         .glass-header { background: var(--pld-blue); box-shadow: 0 4px 25px rgba(0, 74, 153, 0.4); }
         .premium-card { @apply bg-white rounded-3xl border border-slate-100 shadow-sm transition-all; }
-        .form-input-pld { @apply w-full bg-slate-50 border-2 border-slate-200 rounded-xl px-5 py-3 text-sm font-bold outline-none focus:border-[#00aeef] transition-all uppercase; box-sizing: border-box; }
+        .form-input-pld { @apply w-full bg-slate-50 border-2 border-slate-200 rounded-xl px-5 py-3 text-sm font-bold outline-none focus:border-[#00aeef] focus:bg-white transition-all uppercase; box-sizing: border-box; }
         .view-section { display: none; }
         .active-view { display: block; animation: fadeIn 0.3s ease-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .nav-btn { @apply flex items-center gap-3 px-6 py-4 text-white/60 hover:text-white transition-all rounded-2xl; }
         .nav-btn.active { @apply text-white bg-white/15 font-black shadow-lg; }
-        .mini-btn { @apply p-2.5 rounded-xl transition-all flex items-center justify-center cursor-pointer; }
+        .mini-btn { @apply p-2.5 rounded-xl transition-all flex items-center justify-center cursor-pointer hover:bg-slate-100; }
         .status-pill { @apply px-3 py-1 rounded-full text-[10px] font-black border uppercase; }
         .menu-dropdown { display: none; @apply absolute right-0 top-full mt-2 w-44 bg-white rounded-2xl shadow-2xl border z-50 overflow-hidden; }
         .menu-dropdown.active { display: block; }
-        .chart-box { height: 130px; width: 100%; position: relative; }
+        .chart-box { height: 140px; width: 100%; position: relative; }
+        ::-webkit-scrollbar { width: 10px; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; border: 2px solid #f8fafc; }
     </style>
 </head>
 <body onclick="window.closeAllMenus()">
@@ -44,8 +50,8 @@
                 <img src="logo pelindo.jpg" alt="Logo" class="h-full w-full object-contain" onerror="this.src='https://www.pelindo.co.id/logo_pelindo_single.png'">
             </div>
             <div class="text-left border-l-2 border-white/20 pl-8">
-                <h1 class="text-xl md:text-2xl font-black tracking-tight leading-tight uppercase text-left">PT PELINDO PETIKEMAS NEW MAKASSAR</h1>
-                <p class="text-[11px] font-bold opacity-80 tracking-[0.5em] mt-2 uppercase text-left">TEKNIK TERMINAL 2</p>
+                <h1 class="text-xl md:text-2xl font-black tracking-tight leading-tight uppercase">PT PELINDO PETIKEMAS NEW MAKASSAR</h1>
+                <p class="text-[11px] font-bold opacity-80 tracking-[0.5em] mt-2 uppercase">TEKNIK TERMINAL 2</p>
             </div>
         </div>
         <div class="max-w-7xl mx-auto px-8 flex gap-3 overflow-x-auto no-scrollbar">
@@ -65,16 +71,17 @@
                     <input type="text" id="globalSearch" onkeyup="window.handleSearch(this.value)" placeholder="CARI..." class="bg-white border-2 border-slate-100 rounded-2xl pl-12 pr-6 py-3 text-sm font-bold w-64 md:w-80 focus:ring-8 focus:ring-blue-50 transition-all uppercase outline-none shadow-sm">
                 </div>
                 <div id="importPanel" class="bg-white border-2 border-slate-100 rounded-2xl px-6 py-3 shadow-sm flex items-center">
-                    <label class="cursor-pointer flex items-center gap-3 group">
+                    <label class="cursor-pointer flex items-center gap-3">
                         <input type="file" id="importExcel" accept=".xlsx, .xls" class="hidden" onchange="window.importDataMultiSheets(event)">
-                        <span class="text-[11px] font-black text-slate-500 group-hover:text-blue-600 tracking-widest transition-all">IMPOR FILE</span>
+                        <span class="text-[11px] font-black text-slate-500 uppercase">IMPOR FILE</span>
                     </label>
                 </div>
                 <div class="bg-white border-2 border-slate-100 rounded-2xl px-6 py-3 shadow-sm flex items-center gap-6">
                     <span class="text-[11px] font-black text-slate-500 tracking-widest uppercase">UNDUH</span>
-                    <div class="flex gap-4">
-                        <button onclick="window.exportData('xlsx')" class="mini-btn text-emerald-600 hover:bg-emerald-50"><i data-lucide="file-spreadsheet" class="w-6 h-6"></i></button>
-                        <button onclick="window.exportData('pdf')" class="mini-btn text-red-600 hover:bg-red-50"><i data-lucide="printer" class="w-6 h-6"></i></button>
+                    <div class="flex gap-3">
+                        <button onclick="window.exportData('xlsx')" class="mini-btn text-emerald-600" title="EXCEL"><i data-lucide="file-spreadsheet" class="w-6 h-6"></i></button>
+                        <button onclick="window.exportData('docx')" class="mini-btn text-blue-600" title="WORD"><i data-lucide="file-text" class="w-6 h-6"></i></button>
+                        <button onclick="window.exportData('pdf')" class="mini-btn text-red-600" title="PDF"><i data-lucide="printer" class="w-6 h-6"></i></button>
                     </div>
                 </div>
             </div>
@@ -93,85 +100,42 @@
                         <div class="flex items-center gap-4 mb-2 text-left"><div class="bg-blue-900 text-white p-2.5 rounded-xl shadow-xl text-left"><i data-lucide="plus" class="w-6 h-6 text-left"></i></div><span class="text-sm font-black tracking-[0.2em] uppercase text-left">INPUT AKTIVITAS</span></div>
                         <div class="grid grid-cols-2 gap-6 text-left">
                             <div class="space-y-2 text-left"><label class="text-[12px] font-black text-slate-500 uppercase ml-1 text-left">KATEGORI</label><select id="category" class="form-input-pld"><option value="ELECTRICAL">ELEC</option><option value="MECHANICAL">MECH</option><option value="PLUMBING">PLUM</option></select></div>
-                            <div class="space-y-2 text-left text-left"><label class="text-[12px] font-black text-slate-500 uppercase ml-1 text-left text-left">ALIRAN</label><select id="itemStatus" onchange="window.toggleKeluarPanels()" class="form-input-pld bg-slate-100 text-[#004a99]"><option value="MASUK">MASUK (+)</option><option value="KELUAR">KELUAR (-)</option></select></div>
+                            <div class="space-y-2 text-left"><label class="text-[12px] font-black text-slate-500 uppercase ml-1 text-left text-left">ALIRAN</label><select id="itemStatus" onchange="window.toggleKeluarPanels()" class="form-input-pld bg-slate-100 text-[#004a99]"><option value="MASUK">MASUK (+)</option><option value="KELUAR">KELUAR (-)</option></select></div>
                         </div>
-                        <div class="space-y-2 text-left text-left text-left"><label class="text-[12px] font-black text-slate-500 uppercase ml-1 text-left">NAMA MATERIAL</label><input type="text" id="itemName" class="form-input-pld text-left" placeholder="CONTOH: KABEL NYY" required></div>
-                        <div class="space-y-2 text-left text-left text-left"><label class="text-[12px] font-black text-slate-500 uppercase ml-1 text-left">TIPE / MERK</label><input type="text" id="itemType" class="form-input-pld text-left" placeholder="CONTOH: SUPREME 4X16MM"></div>
-                        
-                        <!-- Grid Harga Lega -->
+                        <div class="space-y-2 text-left"><label class="text-[12px] font-black text-slate-500 uppercase ml-1 text-left">NAMA MATERIAL</label><input type="text" id="itemName" class="form-input-pld" placeholder="..." required></div>
+                        <div class="space-y-2 text-left"><label class="text-[12px] font-black text-slate-500 uppercase ml-1 text-left">TIPE / MERK</label><input type="text" id="itemType" class="form-input-pld" placeholder="..."></div>
                         <div class="grid grid-cols-1 md:grid-cols-12 gap-5 text-left">
-                            <div class="md:col-span-3 space-y-2 text-left">
-                                <label class="text-[12px] font-black text-slate-500 uppercase ml-1 text-left">QTY</label>
-                                <input type="number" id="qty" class="form-input-pld text-left" required>
-                            </div>
-                            <div class="md:col-span-3 space-y-2 text-left">
-                                <label class="text-[12px] font-black text-slate-500 uppercase ml-1 text-left">UNIT</label>
-                                <select id="unit" class="form-input-pld text-left">
-                                    <option value="PCS">PCS</option><option value="ROL">ROL</option><option value="BTG">BTG</option>
-                                    <option value="SET">SET</option><option value="KLG">KLG</option><option value="BOX">BOX</option>
-                                    <option value="MTR">MTR</option><option value="DUS">DUS</option>
-                                </select>
-                            </div>
-                            <div class="md:col-span-6 space-y-2 text-left">
-                                <label class="text-[12px] font-black text-slate-500 uppercase ml-1 text-left">HARGA SATUAN (IDR)</label>
-                                <input type="number" id="price" class="form-input-pld text-left" placeholder="0">
-                            </div>
+                            <div class="md:col-span-3 space-y-2"><label class="text-[12px] font-black text-slate-500 uppercase ml-1 text-left">QTY</label><input type="number" id="qty" class="form-input-pld text-left" required></div>
+                            <div class="md:col-span-3 space-y-2"><label class="text-[12px] font-black text-slate-500 uppercase ml-1 text-left">UNIT</label><select id="unit" class="form-input-pld text-left"><option value="PCS">PCS</option><option value="ROL">ROL</option><option value="BTG">BTG</option><option value="SET">SET</option><option value="KLG">KLG</option><option value="BOX">BOX</option><option value="MTR">MTR</option></select></div>
+                            <div class="md:col-span-6 space-y-2 text-left"><label class="text-[12px] font-black text-slate-500 uppercase ml-1 text-left">HARGA SATUAN (IDR)</label><input type="number" id="price" class="form-input-pld text-left" placeholder="0"></div>
                         </div>
-
                         <div id="keluarContainer" class="hidden p-6 bg-slate-50 rounded-2xl border-2 border-dashed border-slate-300 space-y-6 text-left">
                             <select id="subStatus" onchange="window.toggleSubPanels()" class="form-input-pld border-blue-200 uppercase text-left"><option value="PEMINJAMAN">BARANG PINJAM</option><option value="INSTALASI">BARANG PROYEK</option></select>
-                            <div id="panelPeminjaman" class="space-y-4 text-left text-left">
-                                <input type="text" id="picBorrow" class="form-input-pld uppercase text-left text-left" placeholder="NAMA PEMINJAM...">
-                                <div class="grid grid-cols-2 gap-4 text-left text-left"><input type="date" id="dateBorrow" class="form-input-pld text-left text-left" title="Tgl Pinjam"><input type="date" id="dateReturn" class="form-input-pld text-left text-left" title="Est. Kembali"></div>
-                                <textarea id="notesBorrow" class="form-input-pld h-20 uppercase text-left text-left" placeholder="CATATAN..."></textarea>
-                            </div>
-                            <div id="panelInstalasi" class="hidden space-y-4 text-left text-left text-left"><input type="text" id="picInstall" class="form-input-pld uppercase text-left text-left" placeholder="NAMA PELAKSANA..."><textarea id="notesInstall" class="form-input-pld h-20 uppercase text-left text-left" placeholder="LOKASI / CATATAN..."></textarea></div>
+                            <div id="panelPeminjaman" class="space-y-4 text-left"><input type="text" id="picBorrow" class="form-input-pld uppercase text-left" placeholder="NAMA PEMINJAM..."><div class="grid grid-cols-2 gap-4"><input type="date" id="dateBorrow" class="form-input-pld text-left"><input type="date" id="dateReturn" class="form-input-pld text-left"></div><textarea id="notesBorrow" class="form-input-pld h-20 uppercase text-left" placeholder="CATATAN..."></textarea></div>
+                            <div id="panelInstalasi" class="hidden space-y-4 text-left"><input type="text" id="picInstall" class="form-input-pld uppercase text-left" placeholder="PELAKSANA..."><textarea id="notesInstall" class="form-input-pld h-20 uppercase text-left" placeholder="LOKASI / CATATAN..."></textarea></div>
                         </div>
-                        <button type="submit" class="w-full bg-[#004a99] text-white py-5 rounded-2xl font-black text-sm tracking-widest uppercase hover:scale-[1.01] active:scale-95 transition-all shadow-2xl text-center">SIMPAN DATA</button>
+                        <button type="submit" class="w-full bg-[#004a99] text-white py-5 rounded-2xl font-black text-sm tracking-widest uppercase hover:scale-[1.01] active:scale-95 transition-all shadow-2xl">SIMPAN DATA</button>
                     </form>
                 </div>
-
-                <div class="lg:col-span-7 text-left">
-                    <div class="flex justify-between items-center mb-6">
-                        <span class="text-sm font-black tracking-widest uppercase text-left">RIWAYAT TRANSAKSI TERBARU</span>
-                        <div class="flex items-center gap-5">
-                            <button onclick="window.clearAllData()" class="text-red-400 hover:text-red-600 transition-all text-left"><i data-lucide="trash-2" class="w-6 h-6 text-left"></i></button>
-                            <span id="entri-count" class="bg-blue-100 text-blue-800 px-5 py-2 rounded-full text-[11px] font-black shadow-sm text-left">0 ENTRI</span>
-                        </div>
-                    </div>
-                    <div class="space-y-4 max-h-[800px] overflow-y-auto pr-3 text-left" id="log-container"></div>
-                </div>
+                <div class="lg:col-span-7 text-left"><div class="flex justify-between items-center mb-6 text-left"><span class="text-sm font-black tracking-widest uppercase text-left">RIWAYAT TRANSAKSI TERBARU</span><div class="flex items-center gap-5 text-left"><button onclick="window.clearAllData()" class="text-red-400 hover:text-red-600 transition-all text-left"><i data-lucide="trash-2" class="w-6 h-6 text-left"></i></button><span id="entri-count" class="bg-blue-100 text-blue-800 px-5 py-2 rounded-full text-[11px] font-black shadow-sm text-left text-left">0 ENTRI</span></div></div><div class="space-y-4 max-h-[800px] overflow-y-auto pr-3 text-left" id="log-container"></div></div>
             </div>
         </div>
 
         <div id="view-stock" class="view-section text-left">
             <div class="grid grid-cols-1 md:grid-cols-3 gap-12 text-left">
-                <div class="space-y-6 text-left"><div class="border-l-4 border-orange-500 pl-4 font-black text-slate-800 text-xl tracking-widest uppercase text-left">MECHANICAL</div><div id="stock-list-MECHANICAL" class="grid gap-5 text-left"></div></div>
-                <div class="space-y-6 text-left"><div class="border-l-4 border-sky-500 pl-4 font-black text-slate-800 text-xl tracking-widest uppercase text-left">ELECTRICAL</div><div id="stock-list-ELECTRICAL" class="grid gap-5 text-left"></div></div>
-                <div class="space-y-6 text-left"><div class="border-l-4 border-emerald-500 pl-4 font-black text-slate-800 text-xl tracking-widest uppercase text-left">PLUMBING</div><div id="stock-list-PLUMBING" class="grid gap-5 text-left"></div></div>
+                <div class="space-y-6 text-left text-left"><div class="border-l-4 border-orange-500 pl-4 font-black text-slate-800 text-xl tracking-widest uppercase text-left">MECHANICAL</div><div id="stock-list-MECHANICAL" class="grid gap-5 text-left text-left text-left"></div></div>
+                <div class="space-y-6 text-left text-left text-left"><div class="border-l-4 border-sky-500 pl-4 font-black text-slate-800 text-xl tracking-widest uppercase text-left text-left">ELECTRICAL</div><div id="stock-list-ELECTRICAL" class="grid gap-5 text-left text-left text-left text-left"></div></div>
+                <div class="space-y-6 text-left text-left text-left text-left text-left"><div class="border-l-4 border-emerald-500 pl-4 font-black text-slate-800 text-xl tracking-widest uppercase text-left text-left">PLUMBING</div><div id="stock-list-PLUMBING" class="grid gap-5 text-left text-left text-left text-left text-left"></div></div>
             </div>
         </div>
 
         <div id="view-loan" class="view-section text-left">
-            <div class="premium-card overflow-hidden shadow-xl text-left">
-                <table class="w-full text-left text-sm">
-                    <thead class="bg-slate-50 font-black border-b text-slate-500">
-                        <tr class="text-left"><th class="p-6 uppercase text-left">WAKTU</th><th class="p-6 uppercase text-left">BARANG</th><th class="p-6 text-center uppercase text-left">QTY</th><th class="p-6 uppercase text-left">PIC / CATATAN</th><th class="p-6 text-right uppercase text-left text-left">AKSI</th></tr>
-                    </thead>
-                    <tbody id="loan-table-body" class="divide-y font-bold text-left"></tbody>
-                </table>
-            </div>
+            <div class="premium-card overflow-hidden shadow-xl text-left"><table class="w-full text-left text-sm text-left"><thead class="bg-slate-50 font-black border-b text-slate-500 text-left"><tr class="text-left"><th class="p-6 uppercase text-left">WAKTU</th><th class="p-6 uppercase text-left text-left">BARANG</th><th class="p-6 text-center uppercase text-left text-left">QTY</th><th class="p-6 uppercase text-left text-left">PIC / CATATAN</th><th class="p-6 text-right uppercase text-left text-left">AKSI</th></tr></thead><tbody id="loan-table-body" class="divide-y font-bold text-left text-left"></tbody></table></div>
         </div>
 
         <div id="view-budget" class="view-section text-left">
-            <div id="budget-summary-grid" class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12 text-left"></div>
-            <div class="p-20 rounded-[3.5rem] bg-[#004a99] text-white flex flex-col md:flex-row justify-between items-center gap-10 shadow-2xl text-left">
-                <div class="text-left">
-                    <p class="text-xs font-black opacity-70 tracking-[0.6em] mb-4 uppercase text-left text-left text-left">VALUASI ASET KESELURUHAN</p>
-                    <h3 id="grand-total-budget" class="text-7xl font-black italic tracking-tighter text-left text-left">RP 0</h3>
-                </div>
-                <i data-lucide="badge-dollar-sign" class="w-48 h-48 opacity-10 text-left"></i>
-            </div>
+            <div id="budget-summary-grid" class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12 text-left text-left"></div>
+            <div class="p-20 rounded-[3.5rem] bg-[#004a99] text-white flex flex-col md:flex-row justify-between items-center gap-10 shadow-2xl text-left text-left"><div class="text-left text-left text-left text-left"><p class="text-xs font-black opacity-70 tracking-[0.6em] mb-4 uppercase text-left text-left text-left">VALUASI ASET KESELURUHAN</p><h3 id="grand-total-budget" class="text-7xl font-black italic tracking-tighter text-left text-left">RP 0</h3></div><i data-lucide="badge-dollar-sign" class="w-48 h-48 opacity-10 text-left text-left text-left"></i></div>
         </div>
     </main>
 
@@ -182,7 +146,6 @@
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, deleteDoc, doc, onSnapshot, query, orderBy, getDocs, writeBatch } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // --- FIREBASE CONFIG ---
         const myFirebaseConfig = {
             apiKey: "AIzaSyAIWaX6CaRy-PLa_KUhMyI_b5CnNia1DxM",
             authDomain: "inventaris-pelindo-t2.firebaseapp.com",
@@ -197,11 +160,7 @@
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'pelindo-v2-prod-stable';
 
         let fbApp, auth, db;
-        try {
-            fbApp = initializeApp(configInput);
-            auth = getAuth(fbApp);
-            db = getFirestore(fbApp);
-        } catch (e) { console.error("Firebase Error"); }
+        try { fbApp = initializeApp(configInput); auth = getAuth(fbApp); db = getFirestore(fbApp); } catch (e) { console.error("Firebase Error"); }
 
         let inventory = [], searchQuery = "", currentView = 'dashboard', charts = {};
 
@@ -227,8 +186,7 @@
         
         window.toggleRowMenu = (e, id) => { 
             e.stopPropagation(); 
-            const menus = document.querySelectorAll('.menu-dropdown');
-            menus.forEach(m => { if(m.id !== `menu-${id}`) m.classList.remove('active'); }); 
+            document.querySelectorAll('.menu-dropdown').forEach(m => { if(m.id !== `menu-${id}`) m.classList.remove('active'); }); 
             const current = document.getElementById(`menu-${id}`);
             if (current) current.classList.toggle('active'); 
         };
@@ -238,14 +196,10 @@
         window.deleteItem = async (e, id) => { 
             if (e) e.stopPropagation();
             if (confirm("Hapus data dari cloud?")) {
-                try {
-                    await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'workshop_logs', id));
-                    showToast("DATA DIHAPUS");
-                } catch (err) { showToast("GAGAL HAPUS", "bg-red-600"); }
+                try { await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'workshop_logs', id)); showToast("DATA DIHAPUS"); } catch (err) { showToast("GAGAL HAPUS", "bg-red-600"); }
             }
         };
 
-        // --- SPECIAL IMPORT LOGIC FOR USER'S MULTI-ROW HEADER ---
         window.importDataMultiSheets = async (event) => {
             const file = event.target.files[0]; if (!file) return;
             showToast("MENGANALISIS EXCEL...");
@@ -256,51 +210,35 @@
                     let totalImported = 0;
 
                     for (const sheetName of workbook.SheetNames) {
-                        const sn = sheetName.toUpperCase();
-                        const cat = sn.includes("ELECTRICAL") ? "ELECTRICAL" : (sn.includes("PLUMBING") ? "PLUMBING" : "MECHANICAL");
+                        const sheetUpper = sheetName.toUpperCase();
+                        const cat = sheetUpper.includes("ELECTRICAL") ? "ELECTRICAL" : (sheetUpper.includes("PLUMBING") ? "PLUMBING" : "MECHANICAL");
                         const ws = workbook.Sheets[sheetName];
-                        
-                        // Gunakan header: 1 untuk membaca baris mentah sebagai array
                         const rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: "" });
                         
-                        // Cari baris yang mengandung subheader "Nama Barang"
-                        let subHeaderRowIdx = -1;
-                        for(let i=0; i<rows.length; i++){
-                            if(rows[i] && rows[i][1] && rows[i][1].toString().toUpperCase().includes("NAMA BARANG")){
-                                subHeaderRowIdx = i;
-                                break;
-                            }
+                        let startRowIdx = -1;
+                        for(let i=0; i<Math.min(rows.length, 50); i++){
+                            if(rows[i] && rows[i][1] && rows[i][1].toString().toUpperCase().includes("NAMA BARANG")){ startRowIdx = i; break; }
                         }
 
-                        // Jika baris subheader ditemukan, mulai baca data dari baris berikutnya
-                        if (subHeaderRowIdx !== -1) {
-                            for (let j = subHeaderRowIdx + 1; j < rows.length; j++) {
+                        if (startRowIdx !== -1) {
+                            for (let j = startRowIdx + 1; j < rows.length; j++) {
                                 const row = rows[j];
-                                // Indeks kolom berdasarkan file user:
-                                // Index 1: Nama Barang, Index 2: Tipe, Index 3: Merk, 
-                                // Index 4: VOL, Index 5: SAT, Index 6: HARGA SATUAN
                                 const name = (row[1] || "").toString().trim().toUpperCase();
+                                if (!name || name === "") continue;
+
                                 const tipe = (row[2] || "").toString().trim().toUpperCase();
                                 const merk = (row[3] || "").toString().trim().toUpperCase();
-                                const qtyRaw = row[4] || 0;
-                                const qty = parseInt(qtyRaw.toString().replace(/[^0-9]/g, ''));
+                                const rawQty = row[4] || 0;
+                                const qty = parseInt(rawQty.toString().replace(/[^0-9]/g, '')) || 0;
                                 const unit = (row[5] || "PCS").toString().trim().toUpperCase();
-                                const priceRaw = row[6] || 0;
-                                const price = parseInt(priceRaw.toString().replace(/[^0-9]/g, ''));
+                                const rawPrice = row[6] || 0;
+                                const price = parseInt(rawPrice.toString().replace(/[^0-9]/g, '')) || 0;
 
-                                if (name && name !== "" && qty > 0) {
+                                if (qty > 0) {
                                     const fullType = [tipe, merk].filter(t => t && t !== "" && t !== "-").join(" - ");
                                     await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'workshop_logs'), {
-                                        category: cat,
-                                        name: name,
-                                        type: fullType || "TANPA TIPE",
-                                        qty: qty,
-                                        unit: unit,
-                                        price: price,
-                                        status: 'MASUK',
-                                        createdAt: Date.now(),
-                                        timestamp: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }),
-                                        subStatus: null
+                                        category: cat, name, type: fullType || "TANPA TIPE", qty, unit, price, status: 'MASUK', createdAt: Date.now(), 
+                                        timestamp: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }), subStatus: null
                                     });
                                     totalImported++;
                                 }
@@ -308,24 +246,43 @@
                         }
                     }
                     showToast(`${totalImported} BARANG DIIMPOR`);
-                } catch (err) { 
-                    console.error("Import error:", err);
-                    showToast("GAGAL MEMBACA FILE", "bg-red-600"); 
-                }
+                } catch (err) { console.error("Import error:", err); showToast("GAGAL IMPOR", "bg-red-600"); }
             };
             reader.readAsArrayBuffer(file);
             event.target.value = ""; 
         };
 
-        window.exportData = (format) => {
+        window.exportData = async (format) => {
             const head = ["WAKTU", "KATEGORI", "BARANG", "TIPE", "QTY", "SATUAN", "STATUS", "PIC", "CATATAN"];
             const rows = inventory.map(i => [i.timestamp, i.category, i.name, i.type || '-', i.qty, i.unit, i.status, i.picBorrow || i.picInstall || '-', i.notesBorrow || i.notesInstall || '-']);
+            
             if(format === 'xlsx') {
                 const ws = XLSX.utils.aoa_to_sheet([head, ...rows]);
-                const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Data"); XLSX.writeFile(wb, "LAPORAN_INVENTARIS.xlsx");
+                const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Data"); XLSX.writeFile(wb, "INVENTARIS_PELINDO.xlsx");
             } else if(format === 'pdf') {
                 const { jsPDF } = window.jspdf;
-                const docPdf = new jsPDF('landscape'); docPdf.autoTable({ head: [head], body: rows, styles: { fontSize: 8 } }); docPdf.save("LAPORAN_INVENTARIS.pdf");
+                const docPdf = new jsPDF('landscape'); docPdf.autoTable({ head: [head], body: rows, styles: { fontSize: 8 } }); docPdf.save("INVENTARIS_PELINDO.pdf");
+            } else if(format === 'docx') {
+                try {
+                    const { Document, Packer, Paragraph, Table, TableRow, TableCell, WidthType, TextRun } = docx;
+                    const docDocx = new Document({
+                        sections: [{
+                            children: [
+                                new Paragraph({ children: [new TextRun({ text: "LAPORAN INVENTARIS PT PELINDO PETIKEMAS NEW MAKASSAR", bold: true, size: 28 })] }),
+                                new Paragraph({ text: "" }),
+                                new Table({
+                                    width: { size: 100, type: WidthType.PERCENTAGE },
+                                    rows: [
+                                        new TableRow({ children: head.map(h => new TableCell({ children: [new Paragraph({ text: h, bold: true })] })) }),
+                                        ...rows.map(r => new TableRow({ children: r.map(c => new TableCell({ children: [new Paragraph(String(c))] })) }))
+                                    ]
+                                })
+                            ]
+                        }]
+                    });
+                    const blob = await Packer.toBlob(docDocx);
+                    saveAs(blob, "INVENTARIS_PELINDO.docx");
+                } catch (err) { showToast("GAGAL WORD", "bg-red-600"); }
             }
         };
 
@@ -361,10 +318,10 @@
                 div.style.borderLeftColor = color;
                 div.innerHTML = `
                     <div class="flex-1 min-w-0 pr-6 text-left">
-                        <div class="flex items-center gap-4 mb-2 text-left"><h4 class="text-sm font-black text-slate-800 uppercase text-left">${item.name || "BARANG"}</h4><span class="status-pill ${item.status === 'MASUK' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-red-50 text-red-600 border-red-100'} text-left">${item.status}</span></div>
-                        <div class="flex flex-wrap items-center gap-4 text-[12px] font-bold text-slate-400 text-left"><span class="text-slate-900 font-black uppercase text-left">${item.qty} ${item.unit || "PCS"}</span> <span class="opacity-30 text-left">|</span> <span class="text-left text-left text-left">${item.timestamp || ""}</span> ${item.type && item.type !== 'TANPA TIPE' ? `<span class="opacity-30 text-left text-left text-left">|</span> <span class="text-slate-500 italic text-left text-left">${item.type}</span>` : ''} ${(item.picBorrow || item.picInstall) ? `<span class="opacity-30 text-left text-left text-left text-left text-left">|</span> <span class="text-blue-600 font-black text-left text-left text-left">PIC: ${item.picBorrow || item.picInstall}</span>` : ''}</div>
+                        <div class="flex items-center gap-4 mb-2 text-left text-left"><h4 class="text-sm font-black text-slate-800 uppercase text-left">${item.name || "BARANG"}</h4><span class="status-pill ${item.status === 'MASUK' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-red-50 text-red-600 border-red-100'} text-left text-left">${item.status}</span></div>
+                        <div class="flex flex-wrap items-center gap-4 text-[12px] font-bold text-slate-400 text-left text-left"><span class="text-slate-900 font-black uppercase text-left text-left">${item.qty} ${item.unit || "PCS"}</span> <span class="opacity-30 text-left text-left">|</span> <span class="text-left text-left text-left">${item.timestamp || ""}</span> ${item.type && item.type !== 'TANPA TIPE' ? `<span class="opacity-30 text-left text-left text-left">|</span> <span class="text-slate-500 italic text-left">${item.type}</span>` : ''} ${pic ? `<span class="opacity-30 text-left text-left text-left">|</span> <span class="text-blue-600 font-black text-left">PIC: ${pic}</span>` : ''}</div>
                     </div>
-                    <div class="relative text-left"><button onclick="window.toggleRowMenu(event, '${item.id}')" class="p-3 text-slate-300 hover:text-slate-600 transition-colors text-left text-left text-left text-left"><i data-lucide="more-vertical" class="w-6 h-6 text-left text-left text-left text-left"></i></button><div id="menu-${item.id}" class="menu-dropdown shadow-2xl border-2 text-left text-left text-left text-left"><button onclick="window.deleteItem(event, '${item.id}')" class="w-full text-left p-4 text-xs font-black text-red-600 hover:bg-red-50 flex items-center gap-4 uppercase text-left text-left text-left text-left text-left text-left"><i data-lucide="trash-2" class="w-5 h-5 text-left text-left text-left text-left text-left"></i> HAPUS</button></div></div>`;
+                    <div class="relative text-left text-left text-left"><button onclick="window.toggleRowMenu(event, '${item.id}')" class="p-3 text-slate-300 hover:text-slate-600 transition-colors text-left text-left text-left"><i data-lucide="more-vertical" class="w-6 h-6 text-left text-left"></i></button><div id="menu-${item.id}" class="menu-dropdown shadow-2xl border-2 text-left text-left text-left"><button onclick="window.deleteItem(event, '${item.id}')" class="w-full text-left p-4 text-xs font-black text-red-600 hover:bg-red-50 flex items-center gap-4 uppercase text-left text-left text-left text-left"><i data-lucide="trash-2" class="w-5 h-5 text-left text-left text-left text-left"></i> HAPUS</button></div></div>`;
                 container.appendChild(div);
             });
         }
@@ -372,19 +329,19 @@
         function renderStock() {
             const sum = {}; 
             inventory.forEach(i => { 
-                const key = i.name + '|' + (i.type || '');
+                const key = (i.name || '') + '|' + (i.type || '');
                 if(!sum[key]) sum[key] = { n: i.name, t: i.type, c: i.category, b: 0, u: i.unit }; 
-                if(i.status === 'MASUK') sum[key].b += i.qty; else sum[key].b -= i.qty; 
+                if(i.status === 'MASUK') sum[key].b += (i.qty || 0); else sum[key].b -= (i.qty || 0); 
             });
             
             ['MECHANICAL', 'ELECTRICAL', 'PLUMBING'].forEach(c => {
                 const grid = document.getElementById(`stock-list-${c}`); if(!grid) return; grid.innerHTML = '';
                 Object.values(sum).filter(s => s.c === c && s.b >= 0).forEach(item => {
                     grid.innerHTML += `
-                        <div class="premium-card p-6 text-left shadow-sm text-left">
-                            <h4 class="text-sm font-black text-slate-800 uppercase mb-1 text-left">${item.n}</h4>
-                            <p class="text-[11px] font-bold text-blue-600 mb-2 lowercase italic text-left">${item.t && item.t !== 'TANPA TIPE' ? item.t : 'TIADA RINCIAN'}</p>
-                            <div class="flex justify-between items-end text-left"><span class="text-3xl font-black text-slate-900 text-left text-left">${item.b}</span><span class="text-xs font-black text-slate-300 uppercase text-left text-left text-left text-left">${item.u}</span></div>
+                        <div class="premium-card p-6 text-left shadow-sm text-left text-left text-left">
+                            <h4 class="text-sm font-black text-slate-800 uppercase mb-1 text-left text-left">${item.n}</h4>
+                            <p class="text-[11px] font-bold text-blue-600 mb-2 lowercase italic text-left text-left">${item.t && item.t !== 'TANPA TIPE' ? item.t : 'TIADA RINCIAN'}</p>
+                            <div class="flex justify-between items-end text-left text-left text-left"><span class="text-3xl font-black text-slate-900 text-left text-left text-left">${item.b}</span><span class="text-xs font-black text-slate-300 uppercase text-left text-left text-left">${item.u}</span></div>
                         </div>`;
                 });
             });
@@ -393,7 +350,7 @@
         function renderLoan() {
             const body = document.getElementById('loan-table-body'); if(!body) return; body.innerHTML = '';
             inventory.filter(i => i.subStatus === 'PEMINJAMAN').forEach(l => {
-                body.innerHTML += `<tr><td class="p-6 text-slate-400 font-mono text-sm text-left text-left">${l.timestamp}</td><td class="p-6 text-[#004a99] font-black uppercase text-sm text-left text-left text-left">${l.name} <br> <span class="text-[10px] font-normal text-slate-400 italic lowercase text-left text-left">${l.type || '-'}</span></td><td class="p-6 text-center font-black text-sm text-left text-left text-left">${l.qty}</td><td class="p-6 uppercase text-sm text-left text-left text-left">${l.picBorrow || '-'} ${l.notesBorrow ? `<br><span class="text-[11px] text-slate-400 font-normal text-left text-left text-left">NOTE: ${l.notesBorrow}</span>` : ''}</td><td class="p-6 text-right text-left text-left text-left text-left text-left text-left text-left text-left"><button onclick="window.deleteItem(event, '${l.id}')" class="text-emerald-500 hover:scale-110 transition-transform text-left text-left text-left text-left text-left text-left text-left"><i data-lucide="check-circle-2" class="w-7 h-7 text-left text-left text-left text-left text-left text-left text-left"></i></button></td></tr>`;
+                body.innerHTML += `<tr><td class="p-6 text-slate-400 font-mono text-sm text-left text-left text-left">${l.timestamp}</td><td class="p-6 text-[#004a99] font-black uppercase text-sm text-left text-left text-left">${l.name} <br> <span class="text-[10px] font-normal text-slate-400 italic lowercase text-left text-left">${l.type || '-'}</span></td><td class="p-6 text-center font-black text-sm text-left text-left text-left">${l.qty}</td><td class="p-6 uppercase text-sm text-left text-left text-left">${l.picBorrow || '-'} ${l.notesBorrow ? `<br><span class="text-[11px] text-slate-400 font-normal text-left text-left text-left">NOTE: ${l.notesBorrow}</span>` : ''}</td><td class="p-6 text-right text-left text-left text-left text-left"><button onclick="window.deleteItem(event, '${l.id}')" class="text-emerald-500 hover:scale-110 transition-transform text-left text-left text-left text-left text-left text-left"><i data-lucide="check-circle-2" class="w-7 h-7 text-left text-left text-left text-left text-left"></i></button></td></tr>`;
             });
         }
 
@@ -401,7 +358,7 @@
             const sums = { MECHANICAL: 0, ELECTRICAL: 0, PLUMBING: 0 }; 
             inventory.filter(i => i.status === 'MASUK').forEach(i => { sums[i.category] += (parseInt(i.qty) * (parseInt(i.price) || 0)); });
             const grid = document.getElementById('budget-summary-grid'); if(!grid) return; grid.innerHTML = '';
-            ['MECHANICAL', 'ELECTRICAL', 'PLUMBING'].forEach(c => { grid.innerHTML += `<div class="premium-card p-10 border-l-[15px] text-left text-left text-left text-left ${c === 'MECHANICAL' ? 'border-orange-500' : (c === 'ELECTRICAL' ? 'border-sky-500' : 'border-emerald-500')} text-left text-left text-left text-left text-left text-left text-left text-left"><p class="text-[12px] font-black text-slate-400 mb-3 tracking-widest uppercase text-left text-left text-left text-left text-left text-left text-left text-left">ANGGARAN ${c}</p><h3 class="text-4xl font-black italic text-left text-left text-left text-left text-left text-left text-left text-left">RP ${sums[c].toLocaleString('id-ID')}</h3></div>`; });
+            ['MECHANICAL', 'ELECTRICAL', 'PLUMBING'].forEach(c => { grid.innerHTML += `<div class="premium-card p-10 border-l-[15px] text-left text-left text-left text-left text-left ${c === 'MECHANICAL' ? 'border-orange-500' : (c === 'ELECTRICAL' ? 'border-sky-500' : 'border-emerald-500')} text-left text-left text-left text-left text-left text-left"><p class="text-[12px] font-black text-slate-400 mb-3 tracking-widest uppercase text-left text-left text-left text-left text-left">ANGGARAN ${c}</p><h3 class="text-4xl font-black italic text-left text-left text-left text-left text-left">RP ${sums[c].toLocaleString('id-ID')}</h3></div>`; });
             document.getElementById('grand-total-budget').innerText = `RP ${(sums.MECHANICAL + sums.ELECTRICAL + sums.PLUMBING).toLocaleString('id-ID')}`;
         }
 
@@ -414,7 +371,6 @@
                         if (user) {
                             onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'workshop_logs'), (snap) => {
                                 inventory = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                                // URUTKAN MANUAL DI SISI KLIEN AGAR RIWAYAT MUNCUL PALING BARU
                                 inventory.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
                                 renderAll();
                             });
@@ -422,6 +378,14 @@
                     });
                 }
             } catch (err) { console.error("Init Error"); }
+        };
+
+        window.clearAllData = async () => {
+            if(confirm("BERSIHKAN DATABASE?")) {
+                const q = await getDocs(collection(db, 'artifacts', appId, 'public', 'data', 'workshop_logs'));
+                const batch = writeBatch(db); q.docs.forEach(d => batch.delete(d.ref)); await batch.commit();
+                showToast("DATABASE BERSIH");
+            }
         };
 
         document.getElementById('inventoryForm').onsubmit = async (e) => {
@@ -440,7 +404,13 @@
             e.target.reset(); window.toggleKeluarPanels(); showToast("DATA DISIMPAN");
         };
 
-        function showToast(m, bg = "bg-[#004a99]") { const t = document.getElementById('toast'); if(!t) return; t.innerText = m; t.className = `fixed bottom-10 left-1/2 -translate-x-1/2 transform transition-all duration-500 ${bg} text-white px-10 py-5 rounded-full text-sm font-black tracking-[0.2em] uppercase opacity-100 translate-y-0 z-[200] shadow-2xl`; setTimeout(() => { t.className = t.className.replace('opacity-100 translate-y-0', 'opacity-0 translate-y-10'); }, 2500); }
+        function showToast(m, bg = "bg-[#004a99]") { 
+            const t = document.getElementById('toast'); 
+            if(!t) return; 
+            t.innerText = m; 
+            t.style.opacity = '1';
+            setTimeout(() => { if(t) t.style.opacity = '0'; }, 2500); 
+        }
         init();
     </script>
 </body>
