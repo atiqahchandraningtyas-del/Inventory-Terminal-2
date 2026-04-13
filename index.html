@@ -14,6 +14,7 @@
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Library untuk Word Export -->
     <script src="https://unpkg.com/docx@7.1.0/build/index.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -78,7 +79,8 @@
                     <span class="text-[11px] font-black text-slate-500 tracking-widest uppercase">UNDUH LAPORAN</span>
                     <div class="flex gap-4">
                         <button onclick="window.exportData('xlsx')" class="mini-btn text-emerald-600" title="EXCEL"><i data-lucide="file-spreadsheet" class="w-6 h-6"></i></button>
-                        <button onclick="window.exportData('pdf')" class="mini-btn text-red-600" title="PDF"><i data-lucide="printer" class="w-6 h-6"></i></button>
+                        <button onclick="window.exportData('docx')" class="mini-btn text-blue-600" title="WORD"><i data-lucide="file-text" class="w-6 h-6"></i></button>
+                        <button onclick="window.exportData('pdf')" class="mini-btn text-red-600" title="PDF"><i data-lucide="file-down" class="w-6 h-6"></i></button>
                     </div>
                 </div>
             </div>
@@ -438,12 +440,61 @@
         window.exportData = async (format) => {
             const head = ["WAKTU", "KATEGORI", "BARANG", "TIPE", "QTY", "SATUAN", "STATUS", "PIC", "CATATAN"];
             const rows = inventory.map(i => [i.timestamp, i.category, i.name, i.type || '-', i.qty, i.unit, i.status, i.picBorrow || i.picInstall || '-', i.notesBorrow || i.notesInstall || '-']);
+            
             if(format === 'xlsx') {
                 const ws = XLSX.utils.aoa_to_sheet([head, ...rows]);
                 const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Data"); XLSX.writeFile(wb, "INVENTARIS_PELINDO.xlsx");
             } else if(format === 'pdf') {
                 const { jsPDF } = window.jspdf;
                 const docPdf = new jsPDF('landscape'); docPdf.autoTable({ head: [head], body: rows }); docPdf.save("INVENTARIS_PELINDO.pdf");
+            } else if(format === 'docx') {
+                try {
+                    const { Document, Packer, Paragraph, Table, TableRow, TableCell, WidthType, TextRun, AlignmentType, HeadingLevel } = docx;
+                    
+                    const tableRows = [
+                        new TableRow({
+                            children: head.map(h => new TableCell({
+                                children: [new Paragraph({ children: [new TextRun({ text: h, bold: true })], alignment: AlignmentType.CENTER })],
+                                shading: { fill: "E7E7E7" }
+                            }))
+                        })
+                    ];
+
+                    rows.forEach(r => {
+                        tableRows.push(new TableRow({
+                            children: r.map(c => new TableCell({
+                                children: [new Paragraph({ text: String(c || "-") })]
+                            }))
+                        }));
+                    });
+
+                    const docWord = new Document({
+                        sections: [{
+                            children: [
+                                new Paragraph({
+                                    children: [new TextRun({ text: "LAPORAN INVENTARIS WORKSHOP", bold: true, size: 32 })],
+                                    alignment: AlignmentType.CENTER,
+                                    spacing: { after: 400 }
+                                }),
+                                new Paragraph({
+                                    children: [new TextRun({ text: "PT PELINDO PETIKEMAS NEW MAKASSAR", bold: true, size: 24 })],
+                                    alignment: AlignmentType.CENTER,
+                                    spacing: { after: 600 }
+                                }),
+                                new Table({
+                                    width: { size: 100, type: WidthType.PERCENTAGE },
+                                    rows: tableRows
+                                })
+                            ]
+                        }]
+                    });
+
+                    const blob = await Packer.toBlob(docWord);
+                    saveAs(blob, "INVENTARIS_PELINDO.docx");
+                } catch (err) { 
+                    console.error(err); 
+                    showToast("GAGAL EKSPOR WORD", "bg-red-600");
+                }
             }
         };
 
