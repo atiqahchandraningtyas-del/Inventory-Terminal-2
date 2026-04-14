@@ -378,7 +378,7 @@
                         <textarea id="modalNotesInstall" class="form-input-pld h-20 resize-none uppercase" placeholder="LOKASI UNIT / CRANE..."></textarea>
                     </div>
                 </div>
-                <button type="submit" class="w-full bg-[#004a99] text-white py-4 rounded-xl font-black text-xs tracking-widest uppercase hover:opacity-90 transition-all shadow-xl">KONFIRMASI PENGELUARAN</button>
+                <button type="submit" id="btnConfirmIssue" class="w-full bg-[#004a99] text-white py-4 rounded-xl font-black text-xs tracking-widest uppercase hover:opacity-90 active:scale-[0.98] transition-all shadow-xl">KONFIRMASI PENGELUARAN</button>
             </form>
         </div>
     </div>
@@ -388,7 +388,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, deleteDoc, doc, onSnapshot, getDocs, writeBatch } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, deleteDoc, doc, updateDoc, onSnapshot, getDocs, writeBatch } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         window.toggleMenu = (show) => {
             const menu = document.getElementById('sidebar-menu');
@@ -412,21 +412,30 @@
             if(window.lucide) lucide.createIcons();
         };
 
-        // GitHub Compatibility logic
-        let firebaseConfig = { apiKey: "", projectId: "" };
-        try {
-            if (typeof __firebase_config !== 'undefined' && __firebase_config) {
-                firebaseConfig = JSON.parse(__firebase_config);
-            }
-        } catch (e) { console.error("Firebase config fail"); }
+        // --- KONFIGURASI FIREBASE ---
+        const userFirebaseConfig = {
+            apiKey: "AIzaSyAIwAX6CaRy-PLa_KUhMyl_b5CnNia1DxM",
+            authDomain: "inventaris-pelindo-t2.firebaseapp.com",
+            projectId: "inventaris-pelindo-t2",
+            storageBucket: "inventaris-pelindo-t2.firebasestorage.app",
+            messagingSenderId: "92778704858",
+            appId: "1:92778704858:web:8664db80ccd46ad0d31ae3",
+            measurementId: "G-CXMESTJTXD"
+        };
         
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'pld-inventory-v2';
         let db, auth;
+        
+        // Cek apakah ada config sistem atau gunakan config user
+        const finalConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : userFirebaseConfig;
+
         try {
-            const app = initializeApp(firebaseConfig);
+            const app = initializeApp(finalConfig);
             auth = getAuth(app);
             db = getFirestore(app);
-        } catch (e) { console.warn("Firebase Init fail"); }
+        } catch (e) { 
+            console.error("Firebase Initialization Error", e); 
+        }
 
         let inventory = [];
         let searchQuery = "";
@@ -448,22 +457,41 @@
             if (!db || !auth || !auth.currentUser) return;
             const item = inventory.find(i => i.id === id);
             if (!item) return;
-            if (confirm(`Kembalikan ${item.name}?`)) {
-                await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'inventory_logs'), {
-                    ...item, status: 'MASUK', subStatus: 'KEMBALI', 
-                    notesInstall: `PENGEMBALIAN DARI: ${item.picBorrow}`,
-                    createdAt: Date.now(), timestamp: new Date().toLocaleString('id-ID', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })
-                });
-                await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'inventory_logs', id));
-                showToast("PENGEMBALIAN BERHASIL");
+            if (confirm(`KONFIRMASI PENGEMBALIAN MATERIAL: ${item.name}?`)) {
+                try {
+                    await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'inventory_logs'), {
+                        name: item.name,
+                        type: item.type,
+                        category: item.category,
+                        qty: item.qty,
+                        unit: item.unit,
+                        price: item.price || 0,
+                        status: 'MASUK', 
+                        subStatus: 'PENGEMBALIAN', 
+                        notesInstall: `PENGEMBALIAN DARI: ${item.picBorrow}`,
+                        picBorrow: item.picBorrow,
+                        createdAt: Date.now(), 
+                        timestamp: new Date().toLocaleString('id-ID', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })
+                    });
+                    
+                    await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'inventory_logs', id), {
+                        subStatus: 'PEMINJAMAN_SELESAI'
+                    });
+                    
+                    showToast("PROSES PENGEMBALIAN BERHASIL");
+                } catch (err) {
+                    console.error(err);
+                    showToast("GAGAL PROSES", "bg-red-600");
+                }
             }
         };
 
         window.adjustStockManual = async (name, type, cat, unit, price, delta) => {
             if (!db || !auth || !auth.currentUser) return;
             await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'inventory_logs'), {
-                name, type, category: cat, unit, price: price || 0, qty: Math.abs(delta),
-                status: delta > 0 ? 'MASUK' : 'KELUAR', subStatus: 'ADJUST',
+                name, type, category: cat, unit, price: Number(price) || 0, qty: Math.abs(delta),
+                status: delta > 0 ? 'MASUK' : 'KELUAR', 
+                subStatus: 'ADJUST',
                 notesInstall: 'PENYESUAIAN STOK MANUAL (TOMBOL +/-)', 
                 createdAt: Date.now(),
                 timestamp: new Date().toLocaleString('id-ID', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })
@@ -513,7 +541,7 @@
                         for(let i=0; i<rows.length; i++){ if(rows[i] && rows[i].some(c => String(c).toUpperCase().includes("NAMA"))){ headerIdx = i; break; } }
                         if(headerIdx === -1) continue;
                         const header = rows[headerIdx].map(h => String(h || "").trim().toUpperCase());
-                        const colMap = { name: header.indexOf("NAMA BARANG"), type: header.indexOf("TIPE"), vol: header.indexOf("VOL"), sat: header.indexOf("SAT"), price: header.findIndex(h => h.includes("HARGA")) };
+                        const colMap = { name: header.findIndex(h => h.includes("NAMA")), type: header.findIndex(h => h.includes("TIPE")), vol: header.findIndex(h => h.includes("VOL") || h.includes("QTY")), sat: header.findIndex(h => h.includes("SAT") || h.includes("UNIT")), price: header.findIndex(h => h.includes("HARGA")) };
                         for(let j = headerIdx + 1; j < rows.length; j++) {
                             const r = rows[j];
                             if(!r || !r[colMap.name]) continue;
@@ -521,7 +549,7 @@
                             if(qty <= 0) continue;
                             await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'inventory_logs'), {
                                 name: String(r[colMap.name]).trim().toUpperCase(), category: cat, type: String(r[colMap.type] || "UMUM").trim().toUpperCase(),
-                                qty: qty, unit: String(r[colMap.sat] || "PCS").trim().toUpperCase(), price: parseInt(String(r[colMap.price] || "0").replace(/[^0-9]/g, '')) || 0,
+                                qty: qty, unit: String(r[colMap.sat] || "PCS").trim().toUpperCase(), price: Number(String(r[colMap.price] || "0").replace(/[^0-9]/g, '')) || 0,
                                 status: 'MASUK', subStatus: 'IMPOR', notesInstall: `IMPOR SHEET: ${sName}`, createdAt: Date.now(),
                                 timestamp: new Date().toLocaleString('id-ID', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })
                             });
@@ -588,24 +616,38 @@
                 div.style.borderLeftColor = item.category === 'ELECTRICAL' ? '#0ea5e9' : (item.category === 'MECHANICAL' ? '#f97316' : '#10b981');
                 
                 let detailNote = "";
-                if(item.subStatus === 'PROYEK') detailNote = `PIC: ${item.picInstall} | LOKASI: ${item.notesInstall}`;
-                else if(item.subStatus === 'PEMINJAMAN') detailNote = `PEMINJAM: ${item.picBorrow} | CATATAN: ${item.notesBorrow || '-'}`;
-                else detailNote = item.notesInstall || item.notesBorrow || '';
+                let subLabelColor = "bg-slate-100 text-slate-500";
+                
+                if(item.subStatus === 'PROYEK') {
+                    detailNote = `PIC: ${item.picInstall || '-'} | LOKASI: ${item.notesInstall || '-'}`;
+                    subLabelColor = "bg-blue-100 text-blue-700";
+                } else if(item.subStatus === 'PEMINJAMAN') {
+                    detailNote = `PEMINJAM: ${item.picBorrow || '-'} | CATATAN: ${item.notesBorrow || '-'}`;
+                    subLabelColor = "bg-orange-100 text-orange-700";
+                } else if(item.subStatus === 'PENGEMBALIAN') {
+                    detailNote = `DARI: ${item.picBorrow || '-'} | KETERANGAN: ${item.notesInstall || '-'}`;
+                    subLabelColor = "bg-emerald-100 text-emerald-700";
+                } else if(item.subStatus === 'ADJUST') {
+                    detailNote = item.notesInstall || '';
+                    subLabelColor = "bg-red-100 text-red-700";
+                } else {
+                    detailNote = item.notesInstall || item.notesBorrow || '';
+                }
 
                 div.innerHTML = `
                     <div class="flex justify-between items-start">
                         <div class="flex-1 min-w-0 pr-4">
                             <div class="flex items-center gap-2 mb-1 flex-wrap">
-                                <span class="bg-slate-100 text-slate-500 px-2 py-0.5 rounded-lg text-[8px] font-black">${item.subStatus || 'INPUT'}</span>
+                                <span class="${subLabelColor} px-2 py-0.5 rounded-lg text-[8px] font-black tracking-wider uppercase">${item.subStatus || 'INPUT'}</span>
                                 <span class="text-xs font-black text-slate-800 uppercase">${item.name}</span>
                                 <span class="status-pill ${item.status === 'MASUK' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-red-50 text-red-600 border-red-100'}">${item.status}</span>
                             </div>
-                            <div class="text-[9px] text-slate-400 font-bold mb-2 uppercase">
+                            <div class="text-[9px] text-slate-400 font-bold mb-2 uppercase tracking-wide">
                                 ${item.qty} ${item.unit} • ${item.timestamp} • ${item.type}
                             </div>
-                            ${detailNote ? `<div class="text-[9px] text-blue-700 font-bold bg-blue-50 p-2 rounded-xl border border-blue-100">${detailNote}</div>` : ''}
+                            ${detailNote ? `<div class="text-[9px] text-slate-600 font-bold bg-slate-50 p-2 rounded-xl border border-slate-100 italic">INFO: ${detailNote}</div>` : ''}
                         </div>
-                        <button onclick="window.deleteItem('${item.id}')" class="text-slate-200 hover:text-red-500 mt-1"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                        <button onclick="window.deleteItem('${item.id}')" class="text-slate-200 hover:text-red-500 mt-1 transition-all"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
                     </div>
                 `;
                 container.appendChild(div);
@@ -634,7 +676,7 @@
                                 <span class="text-xl font-black">${item.q}</span>
                                 <button onclick="window.adjustStockManual('${item.n.replace(/'/g, "\\'")}', '${item.t.replace(/'/g, "\\'")}', '${item.c}', '${item.u}', ${item.p}, 1)" class="adjust-btn"><i data-lucide="plus" class="w-3 h-3"></i></button>
                             </div>
-                            <span class="text-[8px] font-bold text-slate-400 italic">${item.t}</span>
+                            <span class="text-[8px] font-bold text-slate-400 italic tracking-tighter">${item.t}</span>
                         </div>
                     `;
                     list.appendChild(div);
@@ -669,12 +711,16 @@
             inventory.filter(i => i.subStatus === 'PEMINJAMAN').forEach(loan => {
                 const row = document.createElement('tr');
                 row.innerHTML = `
-                    <td class="p-4"><span class="text-blue-900 font-black text-xs">${loan.picBorrow}</span></td>
+                    <td class="p-4"><span class="text-blue-900 font-black text-xs uppercase">${loan.picBorrow || 'PEMINJAM'}</span></td>
                     <td class="p-4"><span class="text-slate-800 text-[10px] font-bold uppercase">${loan.name}</span></td>
-                    <td class="p-4 text-center text-xs font-black">${loan.qty} ${loan.unit}</td>
-                    <td class="p-4"><span class="text-[9px] font-bold text-slate-400 italic lowercase">${loan.notesBorrow || '-'}</span></td>
-                    <td class="p-4 text-[9px] hidden md:table-cell text-slate-400">${loan.dateBorrow}</td>
-                    <td class="p-4 text-right"><button onclick="window.returnItem('${loan.id}')" class="text-emerald-500 hover:scale-110"><i data-lucide="check-circle" class="w-6 h-6"></i></button></td>
+                    <td class="p-4 text-center text-xs font-black uppercase">${loan.qty} ${loan.unit}</td>
+                    <td class="p-4"><span class="text-[9px] font-bold text-slate-400 italic uppercase">${loan.notesBorrow || '-'}</span></td>
+                    <td class="p-4 text-[9px] hidden md:table-cell text-slate-400 uppercase tracking-tighter">${loan.dateBorrow || '-'}</td>
+                    <td class="p-4 text-right">
+                        <button onclick="window.returnItem('${loan.id}')" class="text-emerald-500 hover:scale-110 active:scale-95 transition-all p-2 rounded-full hover:bg-emerald-50" title="Tandai Sudah Kembali">
+                            <i data-lucide="check-circle" class="w-6 h-6"></i>
+                        </button>
+                    </td>
                 `;
                 body.appendChild(row);
             });
@@ -688,7 +734,7 @@
                 if(!stock[key]) stock[key] = { n: i.name, q: 0, p: i.price, c: i.category, u: i.unit };
                 stock[key].q += (i.status === 'MASUK' ? i.qty : -i.qty);
             });
-            Object.values(stock).forEach(item => { if(item.q > 0) sums[item.c] += (item.q * item.p); });
+            Object.values(stock).forEach(item => { if(item.q > 0) sums[item.c] += (item.q * Number(item.p || 0)); });
             const grid = document.getElementById('budget-summary-grid');
             if(grid) {
                 grid.innerHTML = '';
@@ -702,9 +748,9 @@
             if(tableBody) {
                 tableBody.innerHTML = '';
                 Object.values(stock).filter(item => item.q > 0).sort((a,b) => a.c.localeCompare(b.c)).forEach(item => {
-                    const subtotal = item.q * item.p;
+                    const subtotal = item.q * Number(item.p || 0);
                     const tr = document.createElement('tr');
-                    tr.innerHTML = `<td class="p-4 text-[10px] text-slate-400">${item.c}</td><td class="p-4 text-xs font-black uppercase">${item.n}</td><td class="p-4 text-center text-xs">${item.q} ${item.u}</td><td class="p-4 text-right text-xs font-bold">RP ${item.p.toLocaleString('id-ID')}</td><td class="p-4 text-right text-xs font-black text-blue-600">RP ${subtotal.toLocaleString('id-ID')}</td>`;
+                    tr.innerHTML = `<td class="p-4 text-[10px] text-slate-400 uppercase">${item.c}</td><td class="p-4 text-xs font-black uppercase">${item.n}</td><td class="p-4 text-center text-xs uppercase">${item.q} ${item.u}</td><td class="p-4 text-right text-xs font-bold uppercase">RP ${Number(item.p || 0).toLocaleString('id-ID')}</td><td class="p-4 text-right text-xs font-black text-blue-600 uppercase">RP ${subtotal.toLocaleString('id-ID')}</td>`;
                     tableBody.appendChild(tr);
                 });
             }
@@ -715,9 +761,11 @@
                 const canvas = document.getElementById(`chart-${cat}`);
                 if(!canvas) return;
                 const stockByName = {};
-                inventory.filter(i => i.category === cat).forEach(i => {
-                    if(!stockByName[i.name]) stockByName[i.name] = 0;
-                    stockByName[i.name] += (i.status === 'MASUK' ? i.qty : -i.qty);
+                inventory.forEach(i => {
+                    if(i.category === cat) {
+                        if(!stockByName[i.name]) stockByName[i.name] = 0;
+                        stockByName[i.name] += (i.status === 'MASUK' ? i.qty : -i.qty);
+                    }
                 });
                 const sortedItems = Object.entries(stockByName).filter(e => e[1] > 0).sort((a,b) => b[1] - a[1]).slice(0, 5);
                 const labels = sortedItems.map(e => e[0]); 
@@ -726,7 +774,24 @@
                 charts[cat] = new Chart(canvas, {
                     type: 'bar',
                     data: { labels: labels, datasets: [{ data: dataValues, backgroundColor: cat === 'MECHANICAL' ? '#f97316' : (cat === 'ELECTRICAL' ? '#0ea5e9' : '#10b981'), borderRadius: 8 }] },
-                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { display: false }, x: { grid: { display: false }, ticks: { font: { size: 8, weight: 'bold' } } } } }
+                    options: { 
+                        responsive: true, 
+                        maintainAspectRatio: false, 
+                        plugins: { legend: { display: false } }, 
+                        scales: { 
+                            y: { display: false }, 
+                            x: { 
+                                grid: { display: false }, 
+                                ticks: { 
+                                    font: { size: 7, weight: 'bold' },
+                                    callback: function(value) {
+                                        const label = this.getLabelForValue(value);
+                                        return label.length > 8 ? label.substr(0, 8) + '...' : label;
+                                    }
+                                } 
+                            } 
+                        } 
+                    }
                 });
             });
         }
@@ -743,8 +808,16 @@
             if(!auth) return;
             try {
                 const initAuth = async () => {
-                    if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) { await signInWithCustomToken(auth, __initial_auth_token); } 
-                    else { await signInAnonymously(auth); }
+                    try {
+                        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) { 
+                            await signInWithCustomToken(auth, __initial_auth_token); 
+                        } else { 
+                            await signInAnonymously(auth); 
+                        }
+                    } catch (error) {
+                        console.warn("Auth mismatch detected, using anonymous sign-in:", error.message);
+                        await signInAnonymously(auth);
+                    }
                 };
                 await initAuth();
                 onAuthStateChanged(auth, (user) => {
@@ -753,21 +826,21 @@
                             inventory = snap.docs.map(d => ({ id: d.id, ...d.data() }));
                             inventory.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
                             renderAll();
-                        }, (err) => showToast("SYNC FAIL", "bg-red-600"));
+                        }, (err) => showToast("GANGGUAN SINKRONISASI", "bg-red-600"));
                     }
                 });
-            } catch (e) { console.error(e); }
+            } catch (e) { console.error("Firebase Initialization Error:", e); }
         }
 
         document.getElementById('inventoryForm').onsubmit = async (e) => {
-            e.preventDefault(); if(!db || !auth.currentUser) return;
+            e.preventDefault(); if(!db || !auth.currentUser) { showToast("DATABASE BELUM SIAP", "bg-red-600"); return; }
             const data = {
                 category: document.getElementById('category').value,
                 name: document.getElementById('itemName').value.toUpperCase().trim(),
                 type: document.getElementById('itemType').value.toUpperCase().trim() || "UMUM",
-                qty: parseInt(document.getElementById('qty').value),
+                qty: Number(document.getElementById('qty').value) || 1,
                 unit: document.getElementById('unit').value,
-                price: parseInt(document.getElementById('price').value || 0),
+                price: Number(document.getElementById('price').value) || 0,
                 status: 'MASUK', subStatus: 'INPUT',
                 createdAt: Date.now(), timestamp: new Date().toLocaleString('id-ID', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })
             };
@@ -776,26 +849,38 @@
         };
 
         document.getElementById('issueFormAction').onsubmit = async (e) => {
-            e.preventDefault(); if(!db || !auth.currentUser) return;
+            e.preventDefault(); 
+            if(!db || !auth.currentUser) { showToast("DATABASE BELUM SIAP", "bg-red-600"); return; }
+            
             const sub = document.getElementById('modalSubStatus').value;
             const data = {
                 category: document.getElementById('modalCategory').value,
                 name: document.getElementById('modalItemName').value,
                 type: document.getElementById('modalItemType').value,
-                qty: parseInt(document.getElementById('modalQty').value),
+                qty: Number(document.getElementById('modalQty').value) || 1,
                 unit: document.getElementById('modalUnit').value,
-                price: parseInt(document.getElementById('modalPrice').value),
-                status: 'KELUAR', subStatus: sub,
+                price: Number(document.getElementById('modalPrice').value) || 0,
+                status: 'KELUAR', 
+                subStatus: sub,
                 picBorrow: sub === 'PEMINJAMAN' ? document.getElementById('modalPicBorrow').value.toUpperCase() : null,
                 dateBorrow: sub === 'PEMINJAMAN' ? document.getElementById('modalDateBorrow').value : null,
                 dateReturn: sub === 'PEMINJAMAN' ? document.getElementById('modalDateReturn').value : null,
                 notesBorrow: sub === 'PEMINJAMAN' ? document.getElementById('modalNotesBorrow').value.toUpperCase() : null,
                 picInstall: sub === 'PROYEK' ? document.getElementById('modalPicInstall').value.toUpperCase() : null,
                 notesInstall: sub === 'PROYEK' ? document.getElementById('modalNotesInstall').value.toUpperCase() : (sub === 'PENYESUAIAN' ? 'PENYESUAIAN STOK' : null),
-                createdAt: Date.now(), timestamp: new Date().toLocaleString('id-ID', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })
+                createdAt: Date.now(), 
+                timestamp: new Date().toLocaleString('id-ID', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })
             };
-            await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'inventory_logs'), data);
-            window.closeIssueModal(); showToast("PENGELUARAN TERCATAT"); window.switchView('dashboard');
+            
+            try {
+                await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'inventory_logs'), data);
+                window.closeIssueModal(); 
+                showToast("PENGELUARAN TERCATAT"); 
+                window.switchView('dashboard');
+            } catch (err) {
+                console.error("Submit Fail:", err);
+                showToast("GAGAL MENYIMPAN", "bg-red-600");
+            }
         };
 
         init();
