@@ -49,7 +49,6 @@
         }
         .nav-btn-sidebar.active { @apply text-blue-700 bg-blue-100 border-blue-700 font-black shadow-sm; }
         
-        /* Container ikon dengan dimensi tetap agar teks di kanannya sejajar sempurna */
         .nav-btn-sidebar .icon-wrapper {
             @apply flex-shrink-0 w-6 h-6 flex items-center justify-center;
         }
@@ -124,7 +123,6 @@
                     </button>
                     
                     <div class="bg-white p-1 rounded-lg h-10 w-10 flex-shrink-0 flex items-center justify-center shadow-lg overflow-hidden">
-                        <!-- Memanggil file logo sesuai nama yang Anda upload ke repositori -->
                         <img src="logo%20pelindo.jpg" alt="Logo" class="max-h-full max-w-full object-contain" onerror="this.src='https://www.pelindo.co.id/logo_pelindo_single.png'">
                     </div>
                     <div class="border-l border-white/20 pl-4 ml-4">
@@ -135,6 +133,7 @@
                 
                 <div class="flex gap-2">
                     <button onclick="window.exportData('xlsx')" class="bg-white/10 hover:bg-white/20 p-2 rounded-lg transition-all flex items-center justify-center" title="Excel"><i data-lucide="file-spreadsheet" class="w-4 h-4"></i></button>
+                    <!-- Tombol Word baru -->
                     <button onclick="window.exportData('word')" class="bg-white/10 hover:bg-white/20 p-2 rounded-lg transition-all flex items-center justify-center" title="Word"><i data-lucide="file-text" class="w-4 h-4"></i></button>
                     <button onclick="window.exportData('pdf')" class="bg-white/10 hover:bg-white/20 p-2 rounded-lg transition-all flex items-center justify-center" title="PDF"><i data-lucide="file-down" class="w-4 h-4"></i></button>
                 </div>
@@ -150,7 +149,6 @@
                 <div id="entri-count" class="bg-blue-600 text-white px-4 py-1.5 rounded-full text-[10px] font-black shadow-lg uppercase">0 ENTRI TERDATA</div>
             </div>
 
-            <!-- Diagram Batang (Bar Charts) -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-10">
                 <div class="premium-card p-6 border-t-4 border-orange-500">
                     <p class="text-[10px] font-black text-slate-400 mb-4 tracking-widest uppercase">MECHANICAL</p>
@@ -167,7 +165,7 @@
             </div>
 
             <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
-                <h3 class="text-[11px] font-black text-slate-800 tracking-widest uppercase">RIWAYAT AKTIVITAS</h3>
+                <h3 class="text-[11px] font-black text-slate-800 tracking-widest uppercase">RIWAYAT AKTIVITAS TERKINI</h3>
                 <div class="flex gap-2 w-full md:w-auto">
                     <input type="text" onkeyup="window.handleSearch(this.value)" placeholder="CARI..." class="bg-white border rounded-xl px-4 py-2 text-xs font-bold w-full md:w-64 focus:border-blue-500 outline-none uppercase">
                     <button onclick="window.clearAllData()" class="p-2 text-red-400 hover:text-red-600 bg-red-50 rounded-xl flex items-center justify-center" title="Hapus Semua"><i data-lucide="trash-2" class="w-5 h-5"></i></button>
@@ -177,9 +175,18 @@
             <div id="log-container" class="space-y-4 max-h-[600px] overflow-y-auto pr-2"></div>
         </div>
 
-        <!-- Input Section -->
+        <!-- Input Section (Impor Excel dikembalikan) -->
         <div id="view-input" class="view-section">
-            <h2 class="text-xs font-black tracking-[0.4em] text-slate-400 uppercase mb-8">INPUT BARANG</h2>
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+                <h2 class="text-xs font-black tracking-[0.4em] text-slate-400 uppercase">PENERIMAAN BARANG</h2>
+                <div class="bg-white border p-1 rounded-xl flex items-center gap-2">
+                    <input type="file" id="importExcel" accept=".xlsx, .xls" class="hidden" onchange="window.importDataMultiSheets(event)">
+                    <label for="importExcel" class="cursor-pointer flex items-center gap-2 px-4 py-2 text-[10px] font-black text-emerald-600 hover:bg-emerald-50 rounded-lg transition-all">
+                        <i data-lucide="upload" class="w-4 h-4"></i> IMPOR EXCEL
+                    </label>
+                </div>
+            </div>
+            
             <div class="max-w-2xl mx-auto">
                 <form id="inventoryForm" class="premium-card p-6 md:p-10 space-y-6 shadow-xl border-t-8 border-blue-900">
                     <div class="flex items-center gap-4 mb-2">
@@ -406,7 +413,7 @@
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, deleteDoc, doc, onSnapshot, getDocs, writeBatch } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // Global registration for menu toggling
+        // Global functions registration
         window.toggleMenu = (show) => {
             const menu = document.getElementById('sidebar-menu');
             const overlay = document.getElementById('sidebar-overlay');
@@ -523,14 +530,78 @@
             document.getElementById('modalPanelInstalasi').classList.toggle('hidden', val !== 'INSTALASI');
         };
 
+        window.importDataMultiSheets = async (e) => {
+            if (!db) return;
+            const file = e.target.files[0]; if (!file) return;
+            showToast("MEMPROSES FILE...");
+            const reader = new FileReader();
+            reader.onload = async (event) => {
+                try {
+                    const workbook = XLSX.read(new Uint8Array(event.target.result), { type: 'array' });
+                    let count = 0;
+                    for (const sName of workbook.SheetNames) {
+                        const ws = workbook.Sheets[sName];
+                        const rows = XLSX.utils.sheet_to_json(ws, { header: 1 });
+                        const cat = sName.toUpperCase().includes("ELEC") ? "ELECTRICAL" : (sName.toUpperCase().includes("PLUM") ? "PLUMBING" : "MECHANICAL");
+                        let start = -1;
+                        for(let i=0; i<rows.length; i++) { if(rows[i] && rows[i].some(c => String(c).toUpperCase().includes("NAMA"))) { start = i; break; } }
+                        if(start === -1) continue;
+                        for(let j = start + 1; j < rows.length; j++) {
+                            const r = rows[j];
+                            const name = String(r[1] || "").trim().toUpperCase();
+                            if(!name) continue;
+                            await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'inventory_logs'), {
+                                name, category: cat, type: r[2] || "UMUM", qty: parseInt(r[4]) || 0, unit: r[5] || "PCS", price: parseInt(String(r[6]).replace(/[^0-9]/g, '')) || 0,
+                                status: 'MASUK', createdAt: Date.now(), timestamp: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
+                            });
+                            count++;
+                        }
+                    }
+                    showToast(`${count} DATA DIIMPOR`);
+                } catch (err) { showToast("GAGAL", "bg-red-600"); }
+            };
+            reader.readAsArrayBuffer(file);
+        };
+
         window.exportData = (format) => {
             const head = ["WAKTU", "KATEGORI", "MATERIAL", "TIPE", "QTY", "UNIT", "STATUS", "KETERANGAN"];
             const rows = inventory.map(i => [i.timestamp, i.category, i.name, i.type, i.qty, i.unit, i.status, i.notesInstall || i.notesBorrow || '-']);
+            
             if(format === 'xlsx') {
                 const ws = XLSX.utils.aoa_to_sheet([head, ...rows]);
                 const wb = XLSX.utils.book_new();
                 XLSX.utils.book_append_sheet(wb, ws, "Laporan");
                 XLSX.writeFile(wb, "LAPORAN_PELINDO.xlsx");
+            } else if (format === 'word') {
+                // FITUR UNDUH WORD (Request Baru)
+                const { Document, Packer, Paragraph, Table, TableRow, TableCell, WidthType, TextRun } = docx;
+                const docObj = new Document({
+                    sections: [{
+                        children: [
+                            new Paragraph({
+                                children: [new TextRun({ text: "LAPORAN INVENTARIS PT PELINDO PETIKEMAS", bold: true, size: 28 })],
+                                spacing: { after: 400 }
+                            }),
+                            new Table({
+                                width: { size: 100, type: WidthType.PERCENTAGE },
+                                rows: [
+                                    new TableRow({
+                                        children: head.map(h => new TableCell({
+                                            children: [new Paragraph({ children: [new TextRun({ text: h, bold: true })] })],
+                                            shading: { fill: "f3f4f6" }
+                                        }))
+                                    }),
+                                    ...rows.map(r => new TableRow({
+                                        children: r.map(c => new TableCell({ children: [new Paragraph(String(c))] }))
+                                    }))
+                                ]
+                            })
+                        ]
+                    }]
+                });
+                Packer.toBlob(docObj).then(blob => {
+                    saveAs(blob, "LAPORAN_PELINDO.docx");
+                });
             } else {
                 const { jsPDF } = window.jspdf;
                 const docPdf = new jsPDF('landscape');
