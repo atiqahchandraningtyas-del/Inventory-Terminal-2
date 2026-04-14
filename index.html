@@ -43,13 +43,18 @@
         .active-view { display: block; animation: fadeIn 0.3s ease-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         
-        /* Navigation alignment fixed */
+        /* Fixed Icon Alignment in Sidebar */
         .nav-btn-sidebar { 
-            @apply flex items-center gap-4 px-6 py-4 text-slate-600 hover:text-blue-700 hover:bg-blue-50 transition-all rounded-xl font-bold border-l-4 border-transparent text-left w-full;
+            @apply flex items-center gap-4 px-6 py-4 text-slate-600 hover:text-blue-700 hover:bg-blue-50 transition-all rounded-xl font-bold border-l-4 border-transparent text-left;
         }
         .nav-btn-sidebar.active { @apply text-blue-700 bg-blue-100 border-blue-700 font-black shadow-sm; }
-        .nav-btn-sidebar .icon-box { @apply w-6 h-6 flex items-center justify-center flex-shrink-0; }
-        .nav-btn-sidebar span { @apply flex-1 mt-0.5; } 
+        
+        .nav-btn-sidebar .icon-wrapper {
+            @apply flex-shrink-0 w-6 h-6 flex items-center justify-center;
+        }
+        .nav-btn-sidebar span { 
+            @apply leading-none;
+        } 
         
         .status-pill { @apply px-3 py-1 rounded-full text-[10px] font-black border uppercase inline-block; }
         .chart-box { height: 180px; width: 100%; position: relative; }
@@ -76,34 +81,34 @@
         </div>
         
         <nav class="flex-1 p-4 space-y-1 overflow-y-auto mt-2">
-            <button onclick="window.switchView('dashboard')" id="nav-dashboard" class="nav-btn-sidebar active">
-                <div class="icon-box"><i data-lucide="layout-dashboard" class="w-5 h-5"></i></div>
-                <span>DASHBOARD</span>
+            <button onclick="window.switchView('dashboard')" id="nav-dashboard" class="nav-btn-sidebar active w-full">
+                <div class="icon-wrapper"><i data-lucide="layout-dashboard" class="w-5 h-5"></i></div>
+                <span class="text-xs uppercase tracking-widest">DASHBOARD</span>
             </button>
             <div class="h-px bg-slate-100 my-2"></div>
-            <button onclick="window.switchView('input')" id="nav-input" class="nav-btn-sidebar">
-                <div class="icon-box"><i data-lucide="plus-circle" class="w-5 h-5"></i></div>
-                <span>INPUT BARANG</span>
+            <button onclick="window.switchView('input')" id="nav-input" class="nav-btn-sidebar w-full">
+                <div class="icon-wrapper"><i data-lucide="plus-circle" class="w-5 h-5"></i></div>
+                <span class="text-xs uppercase tracking-widest">INPUT BARANG</span>
             </button>
-            <button onclick="window.switchView('issue')" id="nav-issue" class="nav-btn-sidebar">
-                <div class="icon-box"><i data-lucide="log-out" class="w-5 h-5"></i></div>
-                <span>BARANG KELUAR</span>
+            <button onclick="window.switchView('issue')" id="nav-issue" class="nav-btn-sidebar w-full">
+                <div class="icon-wrapper"><i data-lucide="log-out" class="w-5 h-5"></i></div>
+                <span class="text-xs uppercase tracking-widest">BARANG KELUAR</span>
             </button>
-            <button onclick="window.switchView('stock')" id="nav-stock" class="nav-btn-sidebar">
-                <div class="icon-box"><i data-lucide="package" class="w-5 h-5"></i></div>
-                <span>STOK BARANG</span>
+            <button onclick="window.switchView('stock')" id="nav-stock" class="nav-btn-sidebar w-full">
+                <div class="icon-wrapper"><i data-lucide="package" class="w-5 h-5"></i></div>
+                <span class="text-xs uppercase tracking-widest">STOK BARANG</span>
             </button>
-            <button onclick="window.switchView('loan')" id="nav-loan" class="nav-btn-sidebar">
-                <div class="icon-box"><i data-lucide="clipboard-list" class="w-5 h-5"></i></div>
-                <span>PEMINJAMAN</span>
+            <button onclick="window.switchView('loan')" id="nav-loan" class="nav-btn-sidebar w-full">
+                <div class="icon-wrapper"><i data-lucide="clipboard-list" class="w-5 h-5"></i></div>
+                <span class="text-xs uppercase tracking-widest">PEMINJAMAN</span>
             </button>
-            <button onclick="window.switchView('budget')" id="nav-budget" class="nav-btn-sidebar">
-                <div class="icon-box"><i data-lucide="wallet" class="w-5 h-5"></i></div>
-                <span>VALUASI</span>
+            <button onclick="window.switchView('budget')" id="nav-budget" class="nav-btn-sidebar w-full">
+                <div class="icon-wrapper"><i data-lucide="wallet" class="w-5 h-5"></i></div>
+                <span class="text-xs uppercase tracking-widest">VALUASI</span>
             </button>
         </nav>
 
-        <div class="p-6 border-t border-slate-100 text-[10px] text-slate-400 font-bold text-center italic uppercase">
+        <div class="p-6 border-t border-slate-100 text-[10px] text-slate-400 font-bold text-center italic">
             &copy; 2024 PT PELINDO PETIKEMAS
         </div>
     </aside>
@@ -128,6 +133,7 @@
                 
                 <div class="flex gap-2">
                     <button onclick="window.exportData('xlsx')" class="bg-white/10 hover:bg-white/20 p-2 rounded-lg transition-all flex items-center justify-center" title="Excel"><i data-lucide="file-spreadsheet" class="w-4 h-4"></i></button>
+                    <!-- Tombol Word baru -->
                     <button onclick="window.exportData('word')" class="bg-white/10 hover:bg-white/20 p-2 rounded-lg transition-all flex items-center justify-center" title="Word"><i data-lucide="file-text" class="w-4 h-4"></i></button>
                     <button onclick="window.exportData('pdf')" class="bg-white/10 hover:bg-white/20 p-2 rounded-lg transition-all flex items-center justify-center" title="PDF"><i data-lucide="file-down" class="w-4 h-4"></i></button>
                 </div>
@@ -136,7 +142,7 @@
     </header>
 
     <main class="max-w-7xl mx-auto px-4 md:px-8 py-6">
-        <!-- Dashboard View -->
+        <!-- Dashboard Content -->
         <div id="view-dashboard" class="view-section active-view">
             <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
                 <h2 class="text-[10px] font-black tracking-[0.4em] text-slate-400 uppercase">INVENTARIS WORKSHOP</h2>
@@ -165,44 +171,62 @@
                     <button onclick="window.clearAllData()" class="p-2 text-red-400 hover:text-red-600 bg-red-50 rounded-xl flex items-center justify-center" title="Hapus Semua"><i data-lucide="trash-2" class="w-5 h-5"></i></button>
                 </div>
             </div>
+            
             <div id="log-container" class="space-y-4 max-h-[600px] overflow-y-auto pr-2"></div>
         </div>
 
-        <!-- Input Section -->
+        <!-- Input Section (Impor Excel dikembalikan) -->
         <div id="view-input" class="view-section">
             <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
                 <h2 class="text-xs font-black tracking-[0.4em] text-slate-400 uppercase">PENERIMAAN BARANG</h2>
-                <div class="bg-white border-2 border-emerald-100 p-1 rounded-xl flex items-center gap-2 shadow-sm">
+                <div class="bg-white border p-1 rounded-xl flex items-center gap-2">
                     <input type="file" id="importExcel" accept=".xlsx, .xls" class="hidden" onchange="window.importDataMultiSheets(event)">
-                    <label for="importExcel" class="cursor-pointer flex items-center gap-2 px-5 py-2.5 text-[11px] font-black text-emerald-600 hover:bg-emerald-50 rounded-lg transition-all">
-                        <i data-lucide="upload-cloud" class="w-4 h-4"></i> IMPOR DATABASE EXCEL
+                    <label for="importExcel" class="cursor-pointer flex items-center gap-2 px-4 py-2 text-[10px] font-black text-emerald-600 hover:bg-emerald-50 rounded-lg transition-all">
+                        <i data-lucide="upload" class="w-4 h-4"></i> IMPOR EXCEL
                     </label>
                 </div>
             </div>
+            
             <div class="max-w-2xl mx-auto">
                 <form id="inventoryForm" class="premium-card p-6 md:p-10 space-y-6 shadow-xl border-t-8 border-blue-900">
                     <div class="flex items-center gap-4 mb-2">
                         <div class="bg-blue-900 text-white p-2.5 rounded-xl"><i data-lucide="plus" class="w-5 h-5"></i></div>
-                        <span class="text-xs font-black tracking-widest uppercase">TAMBAH STOK MANUAL</span>
+                        <span class="text-xs font-black tracking-widest uppercase">TAMBAH STOK BARU</span>
                     </div>
+                    
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div class="space-y-2">
                             <label class="text-[10px] font-black text-slate-400 ml-1">KATEGORI</label>
-                            <select id="category" class="form-input-pld"><option value="ELECTRICAL">ELECTRICAL</option><option value="MECHANICAL">MECHANICAL</option><option value="PLUMBING">PLUMBING</option></select>
+                            <select id="category" class="form-input-pld">
+                                <option value="ELECTRICAL">ELECTRICAL</option>
+                                <option value="MECHANICAL">MECHANICAL</option>
+                                <option value="PLUMBING">PLUMBING</option>
+                            </select>
                         </div>
                         <div class="space-y-2">
                             <label class="text-[10px] font-black text-slate-400 ml-1">SATUAN</label>
-                            <select id="unit" class="form-input-pld"><option value="PCS">PCS</option><option value="ROL">ROL</option><option value="BTG">BTG</option><option value="SET">SET</option><option value="KLG">KLG</option><option value="BOX">BOX</option><option value="MTR">MTR</option></select>
+                            <select id="unit" class="form-input-pld">
+                                <option value="PCS">PCS</option>
+                                <option value="ROL">ROL</option>
+                                <option value="BTG">BTG</option>
+                                <option value="SET">SET</option>
+                                <option value="KLG">KLG</option>
+                                <option value="BOX">BOX</option>
+                                <option value="MTR">MTR</option>
+                            </select>
                         </div>
                     </div>
+
                     <div class="space-y-2">
                         <label class="text-[10px] font-black text-slate-400 ml-1">NAMA MATERIAL</label>
                         <input type="text" id="itemName" class="form-input-pld" placeholder="INPUT NAMA MATERIAL..." required>
                     </div>
+
                     <div class="space-y-2">
                         <label class="text-[10px] font-black text-slate-400 ml-1">TIPE / MERK</label>
                         <input type="text" id="itemType" class="form-input-pld" placeholder="INPUT TIPE/MERK...">
                     </div>
+
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div class="space-y-2">
                             <label class="text-[10px] font-black text-slate-400 ml-1">JUMLAH AWAL</label>
@@ -213,6 +237,7 @@
                             <input type="number" id="price" class="form-input-pld" placeholder="0">
                         </div>
                     </div>
+
                     <button type="submit" class="w-full bg-[#004a99] text-white py-4 rounded-xl font-black text-xs tracking-widest uppercase hover:opacity-90 active:scale-[0.98] transition-all shadow-xl">SIMPAN KE DATABASE</button>
                 </form>
             </div>
@@ -342,7 +367,7 @@
                     </div>
                     <div class="space-y-2">
                         <label class="text-[10px] font-black text-slate-400 ml-1 uppercase">TUJUAN</label>
-                        <select id="modalSubStatus" onchange="window.toggleModalSubPanels()" class="form-input-pld uppercase font-black font-black">
+                        <select id="modalSubStatus" onchange="window.toggleModalSubPanels()" class="form-input-pld uppercase font-black">
                             <option value="PEMINJAMAN">PINJAM</option>
                             <option value="INSTALASI">INSTALASI</option>
                             <option value="PENYESUAIAN">PENYESUAIAN</option>
@@ -388,29 +413,18 @@
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, deleteDoc, doc, onSnapshot, getDocs, writeBatch } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // CONFIG & INIT
-        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : { apiKey: "AIza...", projectId: "pld-workshop" };
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'pld-inventory-v2';
-        
-        let db, auth;
-        try {
-            const app = initializeApp(firebaseConfig);
-            auth = getAuth(app);
-            db = getFirestore(app);
-        } catch (e) { console.warn("Firebase Init Error:", e.message); }
-
-        let inventory = [];
-        let searchQuery = "";
-        let issueSearchQuery = "";
-        let charts = {};
-
-        // REGISTER GLOBAL FUNCTIONS IMMEDIATELY
+        // Global functions registration
         window.toggleMenu = (show) => {
             const menu = document.getElementById('sidebar-menu');
             const overlay = document.getElementById('sidebar-overlay');
             if (menu && overlay) {
-                if(show) { menu.classList.add('open'); overlay.classList.add('active'); } 
-                else { menu.classList.remove('open'); overlay.classList.remove('active'); }
+                if(show) {
+                    menu.classList.add('open');
+                    overlay.classList.add('active');
+                } else {
+                    menu.classList.remove('open');
+                    overlay.classList.remove('active');
+                }
             }
         };
 
@@ -426,6 +440,22 @@
             window.scrollTo({ top: 0, behavior: 'smooth' });
             if(window.lucide) lucide.createIcons();
         };
+
+        // Firebase Config
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : { apiKey: "AIza...", projectId: "pld-workshop" };
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'pld-inventory-v2';
+        
+        let db, auth;
+        try {
+            const app = initializeApp(firebaseConfig);
+            auth = getAuth(app);
+            db = getFirestore(app);
+        } catch (e) { console.warn("Firebase Init Error:", e.message); }
+
+        let inventory = [];
+        let searchQuery = "";
+        let issueSearchQuery = "";
+        let charts = {};
 
         window.handleSearch = (q) => { searchQuery = q.toUpperCase(); renderAll(); };
         window.handleIssueSearch = (q) => { issueSearchQuery = q.toUpperCase(); renderIssueList(); };
@@ -447,8 +477,12 @@
             if (confirm(`Kembalikan ${item.name}?`)) {
                 try {
                     await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'inventory_logs'), {
-                        ...item, status: 'MASUK', subStatus: 'PENGEMBALIAN', notesInstall: `DARI: ${item.picBorrow}`,
-                        createdAt: Date.now(), timestamp: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
+                        ...item,
+                        status: 'MASUK',
+                        subStatus: 'PENGEMBALIAN',
+                        notesInstall: `DARI: ${item.picBorrow}`,
+                        createdAt: Date.now(),
+                        timestamp: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
                     });
                     await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'inventory_logs', id));
                     showToast("PENGEMBALIAN BERHASIL");
@@ -461,9 +495,12 @@
             try {
                 await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'inventory_logs'), {
                     name, type, category: cat, unit, price: price || 0,
-                    qty: Math.abs(delta), status: delta > 0 ? 'MASUK' : 'KELUAR',
-                    subStatus: 'PENYESUAIAN', notesInstall: 'PENYESUAIAN STOK',
-                    createdAt: Date.now(), timestamp: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
+                    qty: Math.abs(delta),
+                    status: delta > 0 ? 'MASUK' : 'KELUAR',
+                    subStatus: 'PENYESUAIAN',
+                    notesInstall: 'PENYESUAIAN STOK',
+                    createdAt: Date.now(),
+                    timestamp: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
                 });
                 showToast("STOK DIPERBARUI");
             } catch (e) { showToast("GAGAL", "bg-red-600"); }
@@ -493,63 +530,35 @@
             document.getElementById('modalPanelInstalasi').classList.toggle('hidden', val !== 'INSTALASI');
         };
 
-        // EXPORT / IMPORT LOGIC
         window.importDataMultiSheets = async (e) => {
-            if (!db) { showToast("DATABASE BELUM SIAP", "bg-red-600"); return; }
+            if (!db) return;
             const file = e.target.files[0]; if (!file) return;
             showToast("MEMPROSES FILE...");
             const reader = new FileReader();
             reader.onload = async (event) => {
                 try {
                     const workbook = XLSX.read(new Uint8Array(event.target.result), { type: 'array' });
-                    let totalItems = 0;
-                    const batchLimit = 400; // Limit per batch
-
+                    let count = 0;
                     for (const sName of workbook.SheetNames) {
                         const ws = workbook.Sheets[sName];
                         const rows = XLSX.utils.sheet_to_json(ws, { header: 1 });
                         const cat = sName.toUpperCase().includes("ELEC") ? "ELECTRICAL" : (sName.toUpperCase().includes("PLUM") ? "PLUMBING" : "MECHANICAL");
-                        
                         let start = -1;
-                        for(let i=0; i<rows.length; i++) { 
-                            if(rows[i] && Array.isArray(rows[i]) && rows[i].some(c => String(c).toUpperCase().includes("NAMA"))) { start = i; break; } 
-                        }
-                        
+                        for(let i=0; i<rows.length; i++) { if(rows[i] && rows[i].some(c => String(c).toUpperCase().includes("NAMA"))) { start = i; break; } }
                         if(start === -1) continue;
-
-                        let batch = writeBatch(db);
-                        let countInBatch = 0;
-
                         for(let j = start + 1; j < rows.length; j++) {
                             const r = rows[j];
-                            if(!r || !r[1]) continue;
-                            const name = String(r[1]).trim().toUpperCase();
-                            const type = String(r[2] || r[3] || "UMUM").trim().toUpperCase();
-                            const qty = parseInt(r[4]) || 0;
-                            if(qty <= 0) continue;
-
-                            const docRef = doc(collection(db, 'artifacts', appId, 'public', 'data', 'inventory_logs'));
-                            batch.set(docRef, {
-                                name, category: cat, type, qty, unit: r[5] || "PCS", 
-                                price: parseInt(String(r[6]).replace(/[^0-9]/g, '')) || 0,
-                                status: 'MASUK', createdAt: Date.now(),
-                                timestamp: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
+                            const name = String(r[1] || "").trim().toUpperCase();
+                            if(!name) continue;
+                            await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'inventory_logs'), {
+                                name, category: cat, type: r[2] || "UMUM", qty: parseInt(r[4]) || 0, unit: r[5] || "PCS", price: parseInt(String(r[6]).replace(/[^0-9]/g, '')) || 0,
+                                status: 'MASUK', createdAt: Date.now(), timestamp: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
                             });
-
-                            countInBatch++;
-                            totalItems++;
-
-                            if(countInBatch >= batchLimit) {
-                                await batch.commit();
-                                batch = writeBatch(db);
-                                countInBatch = 0;
-                            }
+                            count++;
                         }
-                        if(countInBatch > 0) await batch.commit();
                     }
-                    showToast(`${totalItems} DATA BERHASIL DIIMPOR`);
-                    e.target.value = ""; // Reset input
-                } catch (err) { console.error(err); showToast("GAGAL IMPOR FILE", "bg-red-600"); }
+                    showToast(`${count} DATA DIIMPOR`);
+                } catch (err) { showToast("GAGAL", "bg-red-600"); }
             };
             reader.readAsArrayBuffer(file);
         };
@@ -562,14 +571,14 @@
                 const ws = XLSX.utils.aoa_to_sheet([head, ...rows]);
                 const wb = XLSX.utils.book_new();
                 XLSX.utils.book_append_sheet(wb, ws, "Laporan");
-                XLSX.writeFile(wb, "LAPORAN_INVENTARIS_PELINDO.xlsx");
+                XLSX.writeFile(wb, "LAPORAN_PELINDO.xlsx");
             } else if (format === 'word') {
-                const { Document, Packer, Paragraph, Table, TableRow, TableCell, WidthType, TextRun, AlignmentType } = docx;
+                // FITUR UNDUH WORD (Request Baru)
+                const { Document, Packer, Paragraph, Table, TableRow, TableCell, WidthType, TextRun } = docx;
                 const docObj = new Document({
                     sections: [{
                         children: [
                             new Paragraph({
-                                alignment: AlignmentType.CENTER,
                                 children: [new TextRun({ text: "LAPORAN INVENTARIS PT PELINDO PETIKEMAS", bold: true, size: 28 })],
                                 spacing: { after: 400 }
                             }),
@@ -578,39 +587,40 @@
                                 rows: [
                                     new TableRow({
                                         children: head.map(h => new TableCell({
-                                            children: [new Paragraph({ children: [new TextRun({ text: h, bold: true, size: 18 })] })],
-                                            shading: { fill: "e5e7eb" }
+                                            children: [new Paragraph({ children: [new TextRun({ text: h, bold: true })] })],
+                                            shading: { fill: "f3f4f6" }
                                         }))
                                     }),
                                     ...rows.map(r => new TableRow({
-                                        children: r.map(c => new TableCell({ children: [new Paragraph({ text: String(c), size: 16 })] }))
+                                        children: r.map(c => new TableCell({ children: [new Paragraph(String(c))] }))
                                     }))
                                 ]
                             })
                         ]
                     }]
                 });
-                Packer.toBlob(docObj).then(blob => saveAs(blob, "LAPORAN_PELINDO.docx"));
+                Packer.toBlob(docObj).then(blob => {
+                    saveAs(blob, "LAPORAN_PELINDO.docx");
+                });
             } else {
                 const { jsPDF } = window.jspdf;
                 const docPdf = new jsPDF('landscape');
-                docPdf.autoTable({ head: [head], body: rows, theme: 'grid', styles: { fontSize: 8 } });
+                docPdf.autoTable({ head: [head], body: rows });
                 docPdf.save("LAPORAN_PELINDO.pdf");
             }
         };
 
         window.clearAllData = async () => {
             if (!db) return;
-            if(confirm("HAPUS SEMUA DATA PERMANEN?")) {
+            if(confirm("HAPUS SEMUA DATA?")) {
                 const snap = await getDocs(collection(db, 'artifacts', appId, 'public', 'data', 'inventory_logs'));
                 const batch = writeBatch(db);
                 snap.docs.forEach(d => batch.delete(d.ref));
                 await batch.commit();
-                showToast("DATABASE DIBERSIHKAN", "bg-red-600");
+                showToast("DATABASE BERSIH", "bg-red-600");
             }
         };
 
-        // RENDERING
         function renderAll() {
             const filtered = inventory.filter(i => i.name.includes(searchQuery) || i.category.includes(searchQuery));
             renderLogs(filtered);
@@ -745,7 +755,12 @@
                 grid.innerHTML = '';
                 ['MECHANICAL', 'ELECTRICAL', 'PLUMBING'].forEach(cat => {
                     const color = cat === 'MECHANICAL' ? 'orange' : (cat === 'ELECTRICAL' ? 'sky' : 'emerald');
-                    grid.innerHTML += `<div class="premium-card p-6 border-l-[10px] border-${color}-500"><p class="text-[9px] font-black text-slate-400 mb-1 uppercase tracking-widest">ASET ${cat}</p><h4 class="text-xl font-black italic">RP ${sums[cat].toLocaleString('id-ID')}</h4></div>`;
+                    grid.innerHTML += `
+                        <div class="premium-card p-6 border-l-[10px] border-${color}-500">
+                            <p class="text-[9px] font-black text-slate-400 mb-1 uppercase tracking-widest">ASET ${cat}</p>
+                            <h4 class="text-xl font-black italic">RP ${sums[cat].toLocaleString('id-ID')}</h4>
+                        </div>
+                    `;
                 });
             }
             document.getElementById('grand-total-budget').innerText = `RP ${(sums.MECHANICAL + sums.ELECTRICAL + sums.PLUMBING).toLocaleString('id-ID')}`;
@@ -756,7 +771,13 @@
                 Object.values(stock).filter(item => item.q > 0).sort((a,b) => a.c.localeCompare(b.c)).forEach(item => {
                     const subtotal = item.q * item.p;
                     const tr = document.createElement('tr');
-                    tr.innerHTML = `<td class="p-4 text-[10px] text-slate-400">${item.c}</td><td class="p-4 text-xs font-black">${item.n}</td><td class="p-4 text-center text-xs">${item.q} ${item.u}</td><td class="p-4 text-right text-xs font-bold">RP ${item.p.toLocaleString('id-ID')}</td><td class="p-4 text-right text-xs font-black text-blue-600">RP ${subtotal.toLocaleString('id-ID')}</td>`;
+                    tr.innerHTML = `
+                        <td class="p-4 text-[10px] text-slate-400">${item.c}</td>
+                        <td class="p-4 text-xs font-black">${item.n}</td>
+                        <td class="p-4 text-center text-xs">${item.q} ${item.u}</td>
+                        <td class="p-4 text-right text-xs font-bold">RP ${item.p.toLocaleString('id-ID')}</td>
+                        <td class="p-4 text-right text-xs font-black text-blue-600">RP ${subtotal.toLocaleString('id-ID')}</td>
+                    `;
                     tableBody.appendChild(tr);
                 });
             }
@@ -778,9 +799,17 @@
                     type: 'bar',
                     data: {
                         labels: labels,
-                        datasets: [{ data: dataValues, backgroundColor: cat === 'MECHANICAL' ? '#f97316' : (cat === 'ELECTRICAL' ? '#0ea5e9' : '#10b981'), borderRadius: 8 }]
+                        datasets: [{ 
+                            data: dataValues, 
+                            backgroundColor: cat === 'MECHANICAL' ? '#f97316' : (cat === 'ELECTRICAL' ? '#0ea5e9' : '#10b981'),
+                            borderRadius: 8
+                        }]
                     },
-                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { display: false }, x: { grid: { display: false }, ticks: { font: { size: 8, weight: 'bold' } } } } }
+                    options: { 
+                        responsive: true, maintainAspectRatio: false, 
+                        plugins: { legend: { display: false } }, 
+                        scales: { y: { display: false }, x: { grid: { display: false }, ticks: { font: { size: 8, weight: 'bold' } } } } 
+                    }
                 });
             });
         }
@@ -794,7 +823,6 @@
             setTimeout(() => { t.style.opacity = '0'; }, 3000);
         }
 
-        // INITIALIZATION
         async function init() {
             if(window.lucide) lucide.createIcons();
             try {
@@ -814,49 +842,54 @@
             } catch (e) { console.error(e); }
         }
 
-        // Forms Listeners
-        document.getElementById('inventoryForm').onsubmit = async (e) => {
-            e.preventDefault();
-            if(!db) return;
-            const data = {
-                category: document.getElementById('category').value,
-                name: document.getElementById('itemName').value.toUpperCase().trim(),
-                type: document.getElementById('itemType').value.toUpperCase().trim() || "UMUM",
-                qty: parseInt(document.getElementById('qty').value),
-                unit: document.getElementById('unit').value,
-                price: parseInt(document.getElementById('price').value || 0),
-                status: 'MASUK', createdAt: Date.now(), timestamp: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
+        const invForm = document.getElementById('inventoryForm');
+        if(invForm) {
+            invForm.onsubmit = async (e) => {
+                e.preventDefault();
+                if(!db) return;
+                const data = {
+                    category: document.getElementById('category').value,
+                    name: document.getElementById('itemName').value.toUpperCase().trim(),
+                    type: document.getElementById('itemType').value.toUpperCase().trim() || "UMUM",
+                    qty: parseInt(document.getElementById('qty').value),
+                    unit: document.getElementById('unit').value,
+                    price: parseInt(document.getElementById('price').value || 0),
+                    status: 'MASUK', createdAt: Date.now(), timestamp: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
+                };
+                await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'inventory_logs'), data);
+                e.target.reset();
+                showToast("STOK TERCATAT");
+                window.switchView('dashboard');
             };
-            await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'inventory_logs'), data);
-            e.target.reset();
-            showToast("STOK TERCATAT");
-            window.switchView('dashboard');
-        };
+        }
 
-        document.getElementById('issueFormAction').onsubmit = async (e) => {
-            e.preventDefault();
-            if(!db) return;
-            const sub = document.getElementById('modalSubStatus').value;
-            const data = {
-                category: document.getElementById('modalCategory').value,
-                name: document.getElementById('modalItemName').value,
-                type: document.getElementById('modalItemType').value,
-                qty: parseInt(document.getElementById('modalQty').value),
-                unit: document.getElementById('modalUnit').value,
-                price: parseInt(document.getElementById('modalPrice').value),
-                status: 'KELUAR', subStatus: sub,
-                picBorrow: sub === 'PEMINJAMAN' ? document.getElementById('modalPicBorrow').value.toUpperCase() : null,
-                dateBorrow: sub === 'PEMINJAMAN' ? document.getElementById('modalDateBorrow').value : null,
-                dateReturn: sub === 'PEMINJAMAN' ? document.getElementById('modalDateReturn').value : null,
-                picInstall: sub === 'INSTALASI' ? document.getElementById('modalPicInstall').value.toUpperCase() : null,
-                notesInstall: sub === 'INSTALASI' ? document.getElementById('modalNotesInstall').value.toUpperCase() : (sub === 'PENYESUAIAN' ? 'PENYESUAIAN' : null),
-                createdAt: Date.now(), timestamp: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
+        const issueForm = document.getElementById('issueFormAction');
+        if(issueForm) {
+            issueForm.onsubmit = async (e) => {
+                e.preventDefault();
+                if(!db) return;
+                const sub = document.getElementById('modalSubStatus').value;
+                const data = {
+                    category: document.getElementById('modalCategory').value,
+                    name: document.getElementById('modalItemName').value,
+                    type: document.getElementById('modalItemType').value,
+                    qty: parseInt(document.getElementById('modalQty').value),
+                    unit: document.getElementById('modalUnit').value,
+                    price: parseInt(document.getElementById('modalPrice').value),
+                    status: 'KELUAR', subStatus: sub,
+                    picBorrow: sub === 'PEMINJAMAN' ? document.getElementById('modalPicBorrow').value.toUpperCase() : null,
+                    dateBorrow: sub === 'PEMINJAMAN' ? document.getElementById('modalDateBorrow').value : null,
+                    dateReturn: sub === 'PEMINJAMAN' ? document.getElementById('modalDateReturn').value : null,
+                    picInstall: sub === 'INSTALASI' ? document.getElementById('modalPicInstall').value.toUpperCase() : null,
+                    notesInstall: sub === 'INSTALASI' ? document.getElementById('modalNotesInstall').value.toUpperCase() : (sub === 'PENYESUAIAN' ? 'PENYESUAIAN' : null),
+                    createdAt: Date.now(), timestamp: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
+                };
+                await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'inventory_logs'), data);
+                window.closeIssueModal();
+                showToast("PENGELUARAN TERCATAT");
+                window.switchView('dashboard');
             };
-            await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'inventory_logs'), data);
-            window.closeIssueModal();
-            showToast("PENGELUARAN TERCATAT");
-            window.switchView('dashboard');
-        };
+        }
 
         init();
     </script>
