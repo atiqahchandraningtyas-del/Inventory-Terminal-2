@@ -171,7 +171,7 @@
                 <div class="bg-white border p-1 rounded-xl flex items-center gap-2">
                     <input type="file" id="importExcel" accept=".xlsx, .xls, .csv" class="hidden" onchange="window.importDataMultiSheets(event)">
                     <label for="importExcel" class="cursor-pointer flex items-center gap-2 px-4 py-2 text-[10px] font-black text-emerald-600 hover:bg-emerald-50 rounded-lg transition-all">
-                        <i data-lucide="upload" class="w-4 h-4"></i> IMPOR FILE
+                        <i data-lucide="upload" class="w-4 h-4"></i> IMPOR FILE SAP
                     </label>
                 </div>
             </div>
@@ -429,7 +429,6 @@
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'pld-inventory-v2';
         let db, auth;
         
-        // Cek apakah ada config sistem atau gunakan config user
         const finalConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : userFirebaseConfig;
 
         try {
@@ -526,11 +525,40 @@
             document.getElementById('modalPanelInstalasi').classList.toggle('hidden', val !== 'PROYEK');
         };
 
+        // FUNGSI ADVANCE UNTUK KLASIFIKASI SAP
+        function classifySAPItem(shortText) {
+            const text = shortText.toUpperCase();
+            let kategori = "MECHANICAL"; // Default
+            
+            // Logika Kategori Electrical
+            const keywordsElec = ["MODULE", "ECU", "FUSE", "CABLE", "LAMP", "BATTERY", "SWITCH", "SENSOR", "SOLENOID", "THERMOCOUPLE", "INVERTER", "BREAKER", "ELECTRICAL"];
+            if (keywordsElec.some(k => text.includes(k))) kategori = "ELECTRICAL";
+            
+            // Logika Kategori Plumbing
+            const keywordsPlum = ["PIPE", "TEE", "ELBOW", "FLANGE", "VALVE", "PVC", "GALVANIS", "PLUMBING"];
+            if (keywordsPlum.some(k => text.includes(k))) kategori = "PLUMBING";
+
+            // Parsing Short Text (SAP biasanya pakai separator ;)
+            // Format SAP: MERK;NAMA_BARANG;TIPE atau NAMA_BARANG;TIPE
+            const parts = shortText.split(';').map(p => p.trim().toUpperCase());
+            let name = parts[1] || parts[0] || "TANPA NAMA";
+            let type = parts[2] || parts[0] || "UMUM";
+            let merk = parts[0] || "UMUM";
+
+            // Jika hanya satu bagian, asumsikan itu nama
+            if (parts.length === 1) {
+                merk = "UMUM";
+                type = "UMUM";
+            }
+
+            return { name, type: `${merk} / ${type}`, kategori };
+        }
+
         window.importDataMultiSheets = async (e) => {
             if (!db || !auth || !auth.currentUser) return;
             const file = e.target.files[0];
             if (!file) return;
-            showToast("MEMPROSES FILE...");
+            showToast("MEMPROSES FILE SAP...");
             const reader = new FileReader();
             reader.onload = async (event) => {
                 try {
@@ -539,28 +567,66 @@
                     for (const sName of workbook.SheetNames) {
                         const ws = workbook.Sheets[sName];
                         const rows = XLSX.utils.sheet_to_json(ws, { header: 1 });
-                        const cat = sName.toUpperCase().includes("ELEC") ? "ELECTRICAL" : (sName.toUpperCase().includes("PLUM") ? "PLUMBING" : "MECHANICAL");
+                        
+                        // Cari header SAP yang spesifik
                         let headerIdx = -1;
-                        for(let i=0; i<rows.length; i++){ if(rows[i] && rows[i].some(c => String(c).toUpperCase().includes("NAMA"))){ headerIdx = i; break; } }
+                        for(let i=0; i<rows.length; i++){ 
+                            if(rows[i] && rows[i].some(c => String(c).toUpperCase().includes("SHORT TEXT"))){ 
+                                headerIdx = i; break; 
+                            } 
+                        }
+                        
                         if(headerIdx === -1) continue;
+                        
                         const header = rows[headerIdx].map(h => String(h || "").trim().toUpperCase());
-                        const colMap = { name: header.findIndex(h => h.includes("NAMA")), type: header.findIndex(h => h.includes("TIPE")), vol: header.findIndex(h => h.includes("VOL") || h.includes("QTY")), sat: header.findIndex(h => h.includes("SAT") || h.includes("UNIT")), price: header.findIndex(h => h.includes("HARGA")) };
+                        
+                        // Mapping kolom SAP
+                        const colMap = { 
+                            shortText: header.findIndex(h => h.includes("SHORT TEXT")), 
+                            qty: header.findIndex(h => h.includes("QUANTITY REQUESTED")), 
+                            unit: header.findIndex(h => h.includes("UNIT OF MEASURE")), 
+                            price: header.findIndex(h => h.includes("VALUATION PRICE")),
+                            prNumber: header.findIndex(h => h.includes("PURCHASE REQUISITION"))
+                        };
+
                         for(let j = headerIdx + 1; j < rows.length; j++) {
                             const r = rows[j];
-                            if(!r || !r[colMap.name]) continue;
-                            const qty = parseInt(r[colMap.vol]) || 0;
+                            if(!r || !r[colMap.shortText]) continue;
+                            
+                            const sapText = String(r[colMap.shortText]);
+                            const { name, type, kategori } = classifySAPItem(sapText);
+                            
+                            const qty = parseInt(r[colMap.qty]) || 0;
                             if(qty <= 0) continue;
+
+                            // Normalisasi Satuan SAP
+                            let sat = String(r[colMap.unit] || "PCS").toUpperCase();
+                            if (sat === 'EA') sat = 'PCS';
+                            if (sat === 'AU') sat = 'SET';
+
+                            const prNum = r[colMap.prNumber] || "N/A";
+
                             await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'inventory_logs'), {
-                                name: String(r[colMap.name]).trim().toUpperCase(), category: cat, type: String(r[colMap.type] || "UMUM").trim().toUpperCase(),
-                                qty: qty, unit: String(r[colMap.sat] || "PCS").trim().toUpperCase(), price: Number(String(r[colMap.price] || "0").replace(/[^0-9]/g, '')) || 0,
-                                status: 'MASUK', subStatus: 'IMPOR', notesInstall: `IMPOR SHEET: ${sName}`, createdAt: Date.now(),
+                                name: name, 
+                                category: kategori, 
+                                type: type,
+                                qty: qty, 
+                                unit: sat, 
+                                price: Number(String(r[colMap.price] || "0").replace(/[^0-9.]/g, '')) || 0,
+                                status: 'MASUK', 
+                                subStatus: 'IMPOR', 
+                                notesInstall: `PR SAP: ${prNum}`, 
+                                createdAt: Date.now(),
                                 timestamp: new Date().toLocaleString('id-ID', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })
                             });
                             count++;
                         }
                     }
-                    showToast(`${count} DATA DIIMPOR`); window.switchView('dashboard');
-                } catch (err) { showToast("GAGAL", "bg-red-600"); }
+                    showToast(`${count} DATA SAP BERHASIL DIIMPOR`); window.switchView('dashboard');
+                } catch (err) { 
+                    console.error(err);
+                    showToast("GAGAL MEMBACA FILE SAP", "bg-red-600"); 
+                }
             };
             reader.readAsArrayBuffer(file);
         };
