@@ -1,892 +1,892 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="theme-color" content="#004a99">
-    <title>PT PELINDO PETIKEMAS NEW MAKASSAR</title>
-    
-    <!-- Link Manifest untuk PWA -->
-    <link rel="manifest" href="manifest.json">
-    
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://unpkg.com/docx@7.1.0/build/index.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
-    
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap');
-        :root { --pld-blue: #004a99; --pld-sky: #00aeef; --pld-bg: #f8fafc; }
-        body { font-family: 'Inter', sans-serif; background-color: var(--pld-bg); color: #1e293b; text-transform: uppercase; overflow-x: hidden; font-size: 14px; }
-        
-        .header-top { background: var(--pld-blue); }
-        
-        #sidebar-menu { 
-            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            transform: translateX(-100%);
-            z-index: 200;
-        }
-        #sidebar-menu.open { transform: translateX(0); }
-        .sidebar-overlay { 
-            display: none;
-            background: rgba(0,0,0,0.5);
-            backdrop-filter: blur(4px);
-            z-index: 150;
-        }
-        .sidebar-overlay.active { display: block; }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#004a99">
+    <title>PT PELINDO PETIKEMAS NEW MAKASSAR</title>
+    
+    <!-- Link Manifest untuk PWA -->
+    <link rel="manifest" href="manifest.json">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/docx@7.1.0/build/index.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap');
+        :root { --pld-blue: #004a99; --pld-sky: #00aeef; --pld-bg: #f8fafc; }
+        body { font-family: 'Inter', sans-serif; background-color: var(--pld-bg); color: #1e293b; text-transform: uppercase; overflow-x: hidden; font-size: 14px; }
+        
+        .header-top { background: var(--pld-blue); }
+        
+        #sidebar-menu { 
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transform: translateX(-100%);
+            z-index: 200;
+        }
+        #sidebar-menu.open { transform: translateX(0); }
+        .sidebar-overlay { 
+            display: none;
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(4px);
+            z-index: 150;
+        }
+        .sidebar-overlay.active { display: block; }
 
-        .premium-card { @apply bg-white rounded-2xl border border-slate-200 shadow-sm transition-all; }
-        .form-input-pld { @apply w-full bg-slate-50 border-2 border-slate-200 rounded-xl px-4 py-3 text-sm font-bold outline-none focus:border-[#00aeef] transition-all uppercase; }
-        .view-section { display: none; }
-        .active-view { display: block; animation: fadeIn 0.3s ease-out; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        
-        .nav-btn-sidebar { 
-            @apply flex items-center gap-4 px-6 py-4 text-slate-600 hover:text-blue-700 hover:bg-blue-50 transition-all rounded-xl font-bold border-l-4 border-transparent text-left;
-        }
-        .nav-btn-sidebar.active { @apply text-blue-700 bg-blue-100 border-blue-700 font-black shadow-sm; }
-        
-        .nav-btn-sidebar .icon-wrapper { @apply flex-shrink-0 w-6 h-6 flex items-center justify-center; }
-        .nav-btn-sidebar span { @apply leading-none; } 
-        
-        .status-pill { @apply px-3 py-1 rounded-full text-[10px] font-black border uppercase inline-block; }
-        .chart-box { height: 180px; width: 100%; position: relative; }
-        .modal-overlay { background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); z-index: 250; }
-        .adjust-btn { @apply w-8 h-8 flex items-center justify-center rounded-lg bg-slate-100 hover:bg-blue-600 hover:text-white transition-all text-slate-600; }
-        
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-    </style>
+        .premium-card { @apply bg-white rounded-2xl border border-slate-200 shadow-sm transition-all; }
+        .form-input-pld { @apply w-full bg-slate-50 border-2 border-slate-200 rounded-xl px-4 py-3 text-sm font-bold outline-none focus:border-[#00aeef] transition-all uppercase; }
+        .view-section { display: none; }
+        .active-view { display: block; animation: fadeIn 0.3s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .nav-btn-sidebar { 
+            @apply flex items-center gap-4 px-6 py-4 text-slate-600 hover:text-blue-700 hover:bg-blue-50 transition-all rounded-xl font-bold border-l-4 border-transparent text-left;
+        }
+        .nav-btn-sidebar.active { @apply text-blue-700 bg-blue-100 border-blue-700 font-black shadow-sm; }
+        
+        .nav-btn-sidebar .icon-wrapper { @apply flex-shrink-0 w-6 h-6 flex items-center justify-center; }
+        .nav-btn-sidebar span { @apply leading-none; } 
+        
+        .status-pill { @apply px-3 py-1 rounded-full text-[10px] font-black border uppercase inline-block; }
+        .chart-box { height: 180px; width: 100%; position: relative; }
+        .modal-overlay { background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); z-index: 250; }
+        .adjust-btn { @apply w-8 h-8 flex items-center justify-center rounded-lg bg-slate-100 hover:bg-blue-600 hover:text-white transition-all text-slate-600; }
+        
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+    </style>
 </head>
 <body class="antialiased">
 
-    <div id="sidebar-overlay" onclick="window.toggleMenu(false)" class="sidebar-overlay fixed inset-0"></div>
-    <aside id="sidebar-menu" class="fixed inset-y-0 left-0 w-72 bg-white shadow-2xl flex flex-col">
-        <div class="p-6 bg-[#004a99] text-white flex justify-between items-center">
-            <div>
-                <h2 class="font-black text-sm tracking-tighter">NAVIGASI MENU</h2>
-                <p class="text-[9px] opacity-60 font-bold uppercase">WORKSHOP TERMINAL 2</p>
-            </div>
-            <button onclick="window.toggleMenu(false)" class="p-2 hover:bg-white/10 rounded-lg flex items-center justify-center">
-                <i data-lucide="x" class="w-6 h-6"></i>
-            </button>
-        </div>
-        
-        <nav class="flex-1 p-4 space-y-1 overflow-y-auto mt-2">
-            <button onclick="window.switchView('dashboard')" id="nav-dashboard" class="nav-btn-sidebar active w-full">
-                <div class="icon-wrapper"><i data-lucide="layout-dashboard" class="w-5 h-5"></i></div>
-                <span class="text-xs uppercase tracking-widest">DASHBOARD</span>
-            </button>
-            <div class="h-px bg-slate-100 my-2"></div>
-            <button onclick="window.switchView('input')" id="nav-input" class="nav-btn-sidebar w-full">
-                <div class="icon-wrapper"><i data-lucide="plus-circle" class="w-5 h-5"></i></div>
-                <span class="text-xs uppercase tracking-widest">INPUT BARANG</span>
-            </button>
-            <button onclick="window.switchView('issue')" id="nav-issue" class="nav-btn-sidebar w-full">
-                <div class="icon-wrapper"><i data-lucide="log-out" class="w-5 h-5"></i></div>
-                <span class="text-xs uppercase tracking-widest">BARANG KELUAR</span>
-            </button>
-            <button onclick="window.switchView('stock')" id="nav-stock" class="nav-btn-sidebar w-full">
-                <div class="icon-wrapper"><i data-lucide="package" class="w-5 h-5"></i></div>
-                <span class="text-xs uppercase tracking-widest">STOK BARANG</span>
-            </button>
-            <button onclick="window.switchView('loan')" id="nav-loan" class="nav-btn-sidebar w-full">
-                <div class="icon-wrapper"><i data-lucide="clipboard-list" class="w-5 h-5"></i></div>
-                <span class="text-xs uppercase tracking-widest">PEMINJAMAN</span>
-            </button>
-            <button onclick="window.switchView('budget')" id="nav-budget" class="nav-btn-sidebar w-full">
-                <div class="icon-wrapper"><i data-lucide="wallet" class="w-5 h-5"></i></div>
-                <span class="text-xs uppercase tracking-widest">VALUASI</span>
-            </button>
-        </nav>
+    <div id="sidebar-overlay" onclick="window.toggleMenu(false)" class="sidebar-overlay fixed inset-0"></div>
+    <aside id="sidebar-menu" class="fixed inset-y-0 left-0 w-72 bg-white shadow-2xl flex flex-col">
+        <div class="p-6 bg-[#004a99] text-white flex justify-between items-center">
+            <div>
+                <h2 class="font-black text-sm tracking-tighter">NAVIGASI MENU</h2>
+                <p class="text-[9px] opacity-60 font-bold uppercase">WORKSHOP TERMINAL 2</p>
+            </div>
+            <button onclick="window.toggleMenu(false)" class="p-2 hover:bg-white/10 rounded-lg flex items-center justify-center">
+                <i data-lucide="x" class="w-6 h-6"></i>
+            </button>
+        </div>
+        
+        <nav class="flex-1 p-4 space-y-1 overflow-y-auto mt-2">
+            <button onclick="window.switchView('dashboard')" id="nav-dashboard" class="nav-btn-sidebar active w-full">
+                <div class="icon-wrapper"><i data-lucide="layout-dashboard" class="w-5 h-5"></i></div>
+                <span class="text-xs uppercase tracking-widest">DASHBOARD</span>
+            </button>
+            <div class="h-px bg-slate-100 my-2"></div>
+            <button onclick="window.switchView('input')" id="nav-input" class="nav-btn-sidebar w-full">
+                <div class="icon-wrapper"><i data-lucide="plus-circle" class="w-5 h-5"></i></div>
+                <span class="text-xs uppercase tracking-widest">INPUT BARANG</span>
+            </button>
+            <button onclick="window.switchView('issue')" id="nav-issue" class="nav-btn-sidebar w-full">
+                <div class="icon-wrapper"><i data-lucide="log-out" class="w-5 h-5"></i></div>
+                <span class="text-xs uppercase tracking-widest">BARANG KELUAR</span>
+            </button>
+            <button onclick="window.switchView('stock')" id="nav-stock" class="nav-btn-sidebar w-full">
+                <div class="icon-wrapper"><i data-lucide="package" class="w-5 h-5"></i></div>
+                <span class="text-xs uppercase tracking-widest">STOK BARANG</span>
+            </button>
+            <button onclick="window.switchView('loan')" id="nav-loan" class="nav-btn-sidebar w-full">
+                <div class="icon-wrapper"><i data-lucide="clipboard-list" class="w-5 h-5"></i></div>
+                <span class="text-xs uppercase tracking-widest">PEMINJAMAN</span>
+            </button>
+            <button onclick="window.switchView('budget')" id="nav-budget" class="nav-btn-sidebar w-full">
+                <div class="icon-wrapper"><i data-lucide="wallet" class="w-5 h-5"></i></div>
+                <span class="text-xs uppercase tracking-widest">VALUASI</span>
+            </button>
+        </nav>
 
-        <div class="p-6 border-t border-slate-100 text-[10px] text-slate-400 font-bold text-center italic">
-            &copy; 2024 PT PELINDO PETIKEMAS
-        </div>
-    </aside>
+        <div class="p-6 border-t border-slate-100 text-[10px] text-slate-400 font-bold text-center italic">
+            &copy; 2024 PT PELINDO PETIKEMAS
+        </div>
+    </aside>
 
-    <header class="sticky top-0 z-[100] shadow-md">
-        <div class="header-top text-white">
-            <div class="max-w-7xl mx-auto px-4 md:px-8 py-3 flex items-center justify-between gap-4">
-                <div class="flex items-center">
-                    <button onclick="window.toggleMenu(true)" class="p-2 bg-white/10 hover:bg-white/20 rounded-xl transition-all mr-4 flex items-center justify-center min-w-[40px] min-h-[40px]">
-                        <i data-lucide="menu" class="w-6 h-6"></i>
-                    </button>
-                    <div class="bg-white p-1 rounded-lg h-10 w-10 flex-shrink-0 flex items-center justify-center shadow-lg overflow-hidden">
-                        <img src="logo%20pelindo.jpg" alt="Logo" class="max-h-full max-w-full object-contain" onerror="this.src='https://www.pelindo.co.id/logo_pelindo_single.png'">
-                    </div>
-                    <div class="border-l border-white/20 pl-4 ml-4">
-                        <h1 class="text-xs md:text-sm font-black tracking-tight leading-none uppercase">PT PELINDO PETIKEMAS NEW MAKASSAR</h1>
-                        <p class="text-[8px] font-bold opacity-70 tracking-[0.2em] uppercase mt-1 leading-none">WORKSHOP TERMINAL 2</p>
-                    </div>
-                </div>
-                <div class="flex gap-2">
-                    <button onclick="window.exportData('xlsx')" class="bg-white/10 hover:bg-white/20 p-2 rounded-lg transition-all flex items-center justify-center" title="Excel"><i data-lucide="file-spreadsheet" class="w-4 h-4"></i></button>
-                    <button onclick="window.exportData('word')" class="bg-white/10 hover:bg-white/20 p-2 rounded-lg transition-all flex items-center justify-center" title="Word"><i data-lucide="file-text" class="w-4 h-4"></i></button>
-                    <button onclick="window.exportData('pdf')" class="bg-white/10 hover:bg-white/20 p-2 rounded-lg transition-all flex items-center justify-center" title="PDF"><i data-lucide="file-down" class="w-4 h-4"></i></button>
-                </div>
-            </div>
-        </div>
-    </header>
+    <header class="sticky top-0 z-[100] shadow-md">
+        <div class="header-top text-white">
+            <div class="max-w-7xl mx-auto px-4 md:px-8 py-3 flex items-center justify-between gap-4">
+                <div class="flex items-center">
+                    <button onclick="window.toggleMenu(true)" class="p-2 bg-white/10 hover:bg-white/20 rounded-xl transition-all mr-4 flex items-center justify-center min-w-[40px] min-h-[40px]">
+                        <i data-lucide="menu" class="w-6 h-6"></i>
+                    </button>
+                    <div class="bg-white p-1 rounded-lg h-10 w-10 flex-shrink-0 flex items-center justify-center shadow-lg overflow-hidden">
+                        <img src="logo%20pelindo.jpg" alt="Logo" class="max-h-full max-w-full object-contain" onerror="this.src='https://www.pelindo.co.id/logo_pelindo_single.png'">
+                    </div>
+                    <div class="border-l border-white/20 pl-4 ml-4">
+                        <h1 class="text-xs md:text-sm font-black tracking-tight leading-none uppercase">PT PELINDO PETIKEMAS NEW MAKASSAR</h1>
+                        <p class="text-[8px] font-bold opacity-70 tracking-[0.2em] uppercase mt-1 leading-none">WORKSHOP TERMINAL 2</p>
+                    </div>
+                </div>
+                <div class="flex gap-2">
+                    <button onclick="window.exportData('xlsx')" class="bg-white/10 hover:bg-white/20 p-2 rounded-lg transition-all flex items-center justify-center" title="Excel"><i data-lucide="file-spreadsheet" class="w-4 h-4"></i></button>
+                    <button onclick="window.exportData('word')" class="bg-white/10 hover:bg-white/20 p-2 rounded-lg transition-all flex items-center justify-center" title="Word"><i data-lucide="file-text" class="w-4 h-4"></i></button>
+                    <button onclick="window.exportData('pdf')" class="bg-white/10 hover:bg-white/20 p-2 rounded-lg transition-all flex items-center justify-center" title="PDF"><i data-lucide="file-down" class="w-4 h-4"></i></button>
+                </div>
+            </div>
+        </div>
+    </header>
 
-    <main class="max-w-7xl mx-auto px-4 md:px-8 py-6">
-        <div id="view-dashboard" class="view-section active-view">
-            <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
-                <h2 class="text-[10px] font-black tracking-[0.4em] text-slate-400 uppercase">INVENTARIS WORKSHOP</h2>
-                <div id="entri-count" class="bg-blue-600 text-white px-4 py-1.5 rounded-full text-[10px] font-black shadow-lg uppercase">0 ENTRI TERDATA</div>
-            </div>
+    <main class="max-w-7xl mx-auto px-4 md:px-8 py-6">
+        <div id="view-dashboard" class="view-section active-view">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+                <h2 class="text-[10px] font-black tracking-[0.4em] text-slate-400 uppercase">INVENTARIS WORKSHOP</h2>
+                <div id="entri-count" class="bg-blue-600 text-white px-4 py-1.5 rounded-full text-[10px] font-black shadow-lg uppercase">0 ENTRI TERDATA</div>
+            </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-10">
-                <div class="premium-card p-6 border-t-4 border-orange-500">
-                    <p class="text-[10px] font-black text-slate-400 mb-4 tracking-widest uppercase">MECHANICAL</p>
-                    <div class="chart-box"><canvas id="chart-MECHANICAL"></canvas></div>
-                </div>
-                <div class="premium-card p-6 border-t-4 border-sky-500">
-                    <p class="text-[10px] font-black text-slate-400 mb-4 tracking-widest uppercase">ELECTRICAL</p>
-                    <div class="chart-box"><canvas id="chart-ELECTRICAL"></canvas></div>
-                </div>
-                <div class="premium-card p-6 border-t-4 border-emerald-500">
-                    <p class="text-[10px] font-black text-slate-400 mb-4 tracking-widest uppercase">PLUMBING</p>
-                    <div class="chart-box"><canvas id="chart-PLUMBING"></canvas></div>
-                </div>
-            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-10">
+                <div class="premium-card p-6 border-t-4 border-orange-500">
+                    <p class="text-[10px] font-black text-slate-400 mb-4 tracking-widest uppercase">MECHANICAL</p>
+                    <div class="chart-box"><canvas id="chart-MECHANICAL"></canvas></div>
+                </div>
+                <div class="premium-card p-6 border-t-4 border-sky-500">
+                    <p class="text-[10px] font-black text-slate-400 mb-4 tracking-widest uppercase">ELECTRICAL</p>
+                    <div class="chart-box"><canvas id="chart-ELECTRICAL"></canvas></div>
+                </div>
+                <div class="premium-card p-6 border-t-4 border-emerald-500">
+                    <p class="text-[10px] font-black text-slate-400 mb-4 tracking-widest uppercase">PLUMBING</p>
+                    <div class="chart-box"><canvas id="chart-PLUMBING"></canvas></div>
+                </div>
+            </div>
 
-            <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
-                <h3 class="text-[11px] font-black text-slate-800 tracking-widest uppercase">RIWAYAT AKTIVITAS</h3>
-                <div class="flex gap-2 w-full md:w-auto">
-                    <input type="text" onkeyup="window.handleSearch(this.value)" placeholder="CARI..." class="bg-white border rounded-xl px-4 py-2 text-xs font-bold w-full md:w-64 focus:border-blue-500 outline-none uppercase">
-                    <button onclick="window.clearAllData()" class="p-2 text-red-400 hover:text-red-600 bg-red-50 rounded-xl flex items-center justify-center" title="Hapus Semua"><i data-lucide="trash-2" class="w-5 h-5"></i></button>
-                </div>
-            </div>
-            <div id="log-container" class="space-y-4 max-h-[600px] overflow-y-auto pr-2"></div>
-        </div>
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+                <h3 class="text-[11px] font-black text-slate-800 tracking-widest uppercase">RIWAYAT AKTIVITAS</h3>
+                <div class="flex gap-2 w-full md:w-auto">
+                    <input type="text" onkeyup="window.handleSearch(this.value)" placeholder="CARI..." class="bg-white border rounded-xl px-4 py-2 text-xs font-bold w-full md:w-64 focus:border-blue-500 outline-none uppercase">
+                    <button onclick="window.clearAllData()" class="p-2 text-red-400 hover:text-red-600 bg-red-50 rounded-xl flex items-center justify-center" title="Hapus Semua"><i data-lucide="trash-2" class="w-5 h-5"></i></button>
+                </div>
+            </div>
+            <div id="log-container" class="space-y-4 max-h-[600px] overflow-y-auto pr-2"></div>
+        </div>
 
-        <div id="view-input" class="view-section">
-            <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
-                <h2 class="text-xs font-black tracking-[0.4em] text-slate-400 uppercase">PENERIMAAN BARANG</h2>
-                <div class="bg-white border p-1 rounded-xl flex items-center gap-2">
-                    <input type="file" id="importExcel" accept=".xlsx, .xls, .csv" class="hidden" onchange="window.importDataMultiSheets(event)">
-                    <label for="importExcel" class="cursor-pointer flex items-center gap-2 px-4 py-2 text-[10px] font-black text-emerald-600 hover:bg-emerald-50 rounded-lg transition-all">
-                        <i data-lucide="upload" class="w-4 h-4"></i> IMPOR FILE
-                    </label>
-                </div>
-            </div>
-            
-            <div class="max-w-2xl mx-auto">
-                <form id="inventoryForm" class="premium-card p-6 md:p-10 space-y-6 shadow-xl border-t-8 border-blue-900">
-                    <div class="flex items-center gap-4 mb-2">
-                        <div class="bg-blue-900 text-white p-2.5 rounded-xl"><i data-lucide="plus" class="w-5 h-5"></i></div>
-                        <span class="text-xs font-black tracking-widest uppercase">TAMBAH STOK BARU</span>
-                    </div>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div class="space-y-2">
-                            <label class="text-[10px] font-black text-slate-400 ml-1">KATEGORI</label>
-                            <select id="category" class="form-input-pld">
-                                <option value="ELECTRICAL">ELECTRICAL</option>
-                                <option value="MECHANICAL">MECHANICAL</option>
-                                <option value="PLUMBING">PLUMBING</option>
-                            </select>
-                        </div>
-                        <div class="space-y-2">
-                            <label class="text-[10px] font-black text-slate-400 ml-1">SATUAN</label>
-                            <select id="unit" class="form-input-pld">
-                                <option value="PCS">PCS</option>
-                                <option value="ROL">ROL</option>
-                                <option value="BTG">BTG</option>
-                                <option value="SET">SET</option>
-                                <option value="KLG">KLG</option>
-                                <option value="BOX">BOX</option>
-                                <option value="JERIGEN">JERIGEN</option>
-                                <option value="MTR">MTR</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="space-y-2">
-                        <label class="text-[10px] font-black text-slate-400 ml-1">NAMA MATERIAL</label>
-                        <input type="text" id="itemName" class="form-input-pld" placeholder="INPUT NAMA MATERIAL..." required>
-                    </div>
-                    <div class="space-y-2">
-                        <label class="text-[10px] font-black text-slate-400 ml-1">TIPE / MERK</label>
-                        <input type="text" id="itemType" class="form-input-pld" placeholder="INPUT TIPE/MERK...">
-                    </div>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div class="space-y-2">
-                            <label class="text-[10px] font-black text-slate-400 ml-1">JUMLAH AWAL</label>
-                            <input type="number" id="qty" class="form-input-pld" required min="1">
-                        </div>
-                        <div class="space-y-2">
-                            <label class="text-[10px] font-black text-slate-400 ml-1">HARGA SATUAN (IDR)</label>
-                            <input type="number" id="price" class="form-input-pld" placeholder="0">
-                        </div>
-                    </div>
-                    <button type="submit" class="w-full bg-[#004a99] text-white py-4 rounded-xl font-black text-xs tracking-widest uppercase hover:opacity-90 active:scale-[0.98] transition-all shadow-xl">SIMPAN KE DATABASE</button>
-                </form>
-            </div>
-        </div>
+        <div id="view-input" class="view-section">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+                <h2 class="text-xs font-black tracking-[0.4em] text-slate-400 uppercase">PENERIMAAN BARANG</h2>
+                <div class="bg-white border p-1 rounded-xl flex items-center gap-2">
+                    <input type="file" id="importExcel" accept=".xlsx, .xls, .csv" class="hidden" onchange="window.importDataMultiSheets(event)">
+                    <label for="importExcel" class="cursor-pointer flex items-center gap-2 px-4 py-2 text-[10px] font-black text-emerald-600 hover:bg-emerald-50 rounded-lg transition-all">
+                        <i data-lucide="upload" class="w-4 h-4"></i> IMPOR FILE
+                    </label>
+                </div>
+            </div>
+            
+            <div class="max-w-2xl mx-auto">
+                <form id="inventoryForm" class="premium-card p-6 md:p-10 space-y-6 shadow-xl border-t-8 border-blue-900">
+                    <div class="flex items-center gap-4 mb-2">
+                        <div class="bg-blue-900 text-white p-2.5 rounded-xl"><i data-lucide="plus" class="w-5 h-5"></i></div>
+                        <span class="text-xs font-black tracking-widest uppercase">TAMBAH STOK BARU</span>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="space-y-2">
+                            <label class="text-[10px] font-black text-slate-400 ml-1">KATEGORI</label>
+                            <select id="category" class="form-input-pld">
+                                <option value="ELECTRICAL">ELECTRICAL</option>
+                                <option value="MECHANICAL">MECHANICAL</option>
+                                <option value="PLUMBING">PLUMBING</option>
+                            </select>
+                        </div>
+                        <div class="space-y-2">
+                            <label class="text-[10px] font-black text-slate-400 ml-1">SATUAN</label>
+                            <select id="unit" class="form-input-pld">
+                                <option value="PCS">PCS</option>
+                                <option value="ROL">ROL</option>
+                                <option value="BTG">BTG</option>
+                                <option value="SET">SET</option>
+                                <option value="KLG">KLG</option>
+                                <option value="BOX">BOX</option>
+                                <option value="JERIGEN">JERIGEN</option>
+                                <option value="MTR">MTR</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-[10px] font-black text-slate-400 ml-1">NAMA MATERIAL</label>
+                        <input type="text" id="itemName" class="form-input-pld" placeholder="INPUT NAMA MATERIAL..." required>
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-[10px] font-black text-slate-400 ml-1">TIPE / MERK</label>
+                        <input type="text" id="itemType" class="form-input-pld" placeholder="INPUT TIPE/MERK...">
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="space-y-2">
+                            <label class="text-[10px] font-black text-slate-400 ml-1">JUMLAH AWAL</label>
+                            <input type="number" id="qty" class="form-input-pld" required min="1">
+                        </div>
+                        <div class="space-y-2">
+                            <label class="text-[10px] font-black text-slate-400 ml-1">HARGA SATUAN (IDR)</label>
+                            <input type="number" id="price" class="form-input-pld" placeholder="0">
+                        </div>
+                    </div>
+                    <button type="submit" class="w-full bg-[#004a99] text-white py-4 rounded-xl font-black text-xs tracking-widest uppercase hover:opacity-90 active:scale-[0.98] transition-all shadow-xl">SIMPAN KE DATABASE</button>
+                </form>
+            </div>
+        </div>
 
-        <div id="view-issue" class="view-section">
-            <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
-                <h2 class="text-xs font-black tracking-[0.4em] text-slate-400 uppercase">BARANG KELUAR</h2>
-                <div class="relative w-full md:w-80">
-                    <i data-lucide="search" class="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
-                    <input type="text" id="issueSearch" onkeyup="window.handleIssueSearch(this.value)" placeholder="CARI MATERIAL..." class="form-input-pld pl-12 bg-white shadow-sm uppercase">
-                </div>
-            </div>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                <div class="space-y-4">
-                    <div class="border-l-4 border-orange-500 pl-4 font-black text-slate-800 text-sm tracking-widest uppercase">MECHANICAL</div>
-                    <div id="issue-list-MECHANICAL" class="grid gap-4"></div>
-                </div>
-                <div class="space-y-4">
-                    <div class="border-l-4 border-sky-500 pl-4 font-black text-slate-800 text-sm tracking-widest uppercase">ELECTRICAL</div>
-                    <div id="issue-list-ELECTRICAL" class="grid gap-4"></div>
-                </div>
-                <div class="space-y-4">
-                    <div class="border-l-4 border-emerald-500 pl-4 font-black text-slate-800 text-sm tracking-widest uppercase">PLUMBING</div>
-                    <div id="issue-list-PLUMBING" class="grid gap-4"></div>
-                </div>
-            </div>
-        </div>
+        <div id="view-issue" class="view-section">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+                <h2 class="text-xs font-black tracking-[0.4em] text-slate-400 uppercase">BARANG KELUAR</h2>
+                <div class="relative w-full md:w-80">
+                    <i data-lucide="search" class="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                    <input type="text" id="issueSearch" onkeyup="window.handleIssueSearch(this.value)" placeholder="CARI MATERIAL..." class="form-input-pld pl-12 bg-white shadow-sm uppercase">
+                </div>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div class="space-y-4">
+                    <div class="border-l-4 border-orange-500 pl-4 font-black text-slate-800 text-sm tracking-widest uppercase">MECHANICAL</div>
+                    <div id="issue-list-MECHANICAL" class="grid gap-4"></div>
+                </div>
+                <div class="space-y-4">
+                    <div class="border-l-4 border-sky-500 pl-4 font-black text-slate-800 text-sm tracking-widest uppercase">ELECTRICAL</div>
+                    <div id="issue-list-ELECTRICAL" class="grid gap-4"></div>
+                </div>
+                <div class="space-y-4">
+                    <div class="border-l-4 border-emerald-500 pl-4 font-black text-slate-800 text-sm tracking-widest uppercase">PLUMBING</div>
+                    <div id="issue-list-PLUMBING" class="grid gap-4"></div>
+                </div>
+            </div>
+        </div>
 
-        <div id="view-stock" class="view-section">
-            <h2 class="text-xs font-black tracking-[0.4em] text-slate-400 uppercase mb-8">STOK TERKINI</h2>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                <div class="space-y-4">
-                    <div class="border-l-4 border-orange-500 pl-4 font-black text-slate-800 text-sm tracking-widest uppercase">MECHANICAL</div>
-                    <div id="stock-list-MECHANICAL" class="grid gap-4"></div>
-                </div>
-                <div class="space-y-4">
-                    <div class="border-l-4 border-sky-500 pl-4 font-black text-slate-800 text-sm tracking-widest uppercase">ELECTRICAL</div>
-                    <div id="stock-list-ELECTRICAL" class="grid gap-4"></div>
-                </div>
-                <div class="space-y-4">
-                    <div class="border-l-4 border-emerald-500 pl-4 font-black text-slate-800 text-sm tracking-widest uppercase">PLUMBING</div>
-                    <div id="stock-list-PLUMBING" class="grid gap-4"></div>
-                </div>
-            </div>
-        </div>
+        <div id="view-stock" class="view-section">
+            <h2 class="text-xs font-black tracking-[0.4em] text-slate-400 uppercase mb-8">POSISI STOK TERKINI</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div class="space-y-4">
+                    <div class="border-l-4 border-orange-500 pl-4 font-black text-slate-800 text-sm tracking-widest uppercase">MECHANICAL</div>
+                    <div id="stock-list-MECHANICAL" class="grid gap-4"></div>
+                </div>
+                <div class="space-y-4">
+                    <div class="border-l-4 border-sky-500 pl-4 font-black text-slate-800 text-sm tracking-widest uppercase">ELECTRICAL</div>
+                    <div id="stock-list-ELECTRICAL" class="grid gap-4"></div>
+                </div>
+                <div class="space-y-4">
+                    <div class="border-l-4 border-emerald-500 pl-4 font-black text-slate-800 text-sm tracking-widest uppercase">PLUMBING</div>
+                    <div id="stock-list-PLUMBING" class="grid gap-4"></div>
+                </div>
+            </div>
+        </div>
 
-        <div id="view-loan" class="view-section">
-            <h2 class="text-xs font-black tracking-[0.4em] text-slate-400 uppercase mb-8 uppercase">DAFTAR PINJAMAN AKTIF</h2>
-            <div class="premium-card overflow-hidden">
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left text-sm uppercase">
-                        <thead class="bg-slate-50 font-black border-b text-slate-500 text-[10px] uppercase">
-                            <tr>
-                                <th class="p-4 md:p-6 uppercase">PEMINJAM</th>
-                                <th class="p-4 md:p-6 uppercase">MATERIAL</th>
-                                <th class="p-4 md:p-6 text-center uppercase">QTY</th>
-                                <th class="p-4 md:p-6 hidden md:table-cell uppercase">CATATAN</th>
-                                <th class="p-4 md:p-6 hidden md:table-cell uppercase">WAKTU PINJAM</th>
-                                <th class="p-4 md:p-6 text-right uppercase">AKSI</th>
-                            </tr>
-                        </thead>
-                        <tbody id="loan-table-body" class="divide-y font-bold"></tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
+        <div id="view-loan" class="view-section">
+            <h2 class="text-xs font-black tracking-[0.4em] text-slate-400 uppercase mb-8 uppercase">DAFTAR PINJAMAN AKTIF</h2>
+            <div class="premium-card overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm uppercase">
+                        <thead class="bg-slate-50 font-black border-b text-slate-500 text-[10px] uppercase">
+                            <tr>
+                                <th class="p-4 md:p-6 uppercase">PEMINJAM</th>
+                                <th class="p-4 md:p-6 uppercase">MATERIAL</th>
+                                <th class="p-4 md:p-6 text-center uppercase">QTY</th>
+                                <th class="p-4 md:p-6 hidden md:table-cell uppercase">CATATAN</th>
+                                <th class="p-4 md:p-6 hidden md:table-cell uppercase">WAKTU PINJAM</th>
+                                <th class="p-4 md:p-6 text-right uppercase">AKSI</th>
+                            </tr>
+                        </thead>
+                        <tbody id="loan-table-body" class="divide-y font-bold"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
 
-        <div id="view-budget" class="view-section">
-            <h2 class="text-xs font-black tracking-[0.4em] text-slate-400 uppercase mb-8 uppercase">VALUASI ASET WORKSHOP</h2>
-            <div id="budget-summary-grid" class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10"></div>
-            <div class="bg-gradient-to-br from-[#004a99] to-[#00aeef] p-10 md:p-16 rounded-[2rem] text-white flex flex-col lg:flex-row justify-between items-center gap-10 shadow-2xl relative overflow-hidden mb-10">
-                <div class="z-10 text-center lg:text-left">
-                    <p class="text-[10px] font-black opacity-70 tracking-[0.6em] mb-4 uppercase">TOTAL VALUASI MATERIAL</p>
-                    <h3 id="grand-total-budget" class="text-4xl md:text-6xl font-black italic tracking-tighter uppercase">RP 0</h3>
-                </div>
-                <i data-lucide="badge-dollar-sign" class="w-40 h-40 opacity-10 absolute right-[-20px] bottom-[-20px] lg:static"></i>
-            </div>
-            <div class="premium-card overflow-hidden">
-                <div class="p-6 border-b bg-slate-50">
-                    <h3 class="font-black text-xs tracking-widest uppercase">DETAIL HARGA SATUAN MATERIAL</h3>
-                </div>
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left text-sm uppercase">
-                        <thead class="bg-slate-100 font-black border-b text-slate-500 text-[10px] uppercase">
-                            <tr>
-                                <th class="p-4">KATEGORI</th>
-                                <th class="p-4">NAMA MATERIAL</th>
-                                <th class="p-4 text-center">STOK</th>
-                                <th class="p-4 text-right">HARGA SATUAN</th>
-                                <th class="p-4 text-right">SUBTOTAL</th>
-                            </tr>
-                        </thead>
-                        <tbody id="valuation-table-body" class="divide-y font-bold"></tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-    </main>
+        <div id="view-budget" class="view-section">
+            <h2 class="text-xs font-black tracking-[0.4em] text-slate-400 uppercase mb-8 uppercase">VALUASI ASET WORKSHOP</h2>
+            <div id="budget-summary-grid" class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10"></div>
+            <div class="bg-gradient-to-br from-[#004a99] to-[#00aeef] p-10 md:p-16 rounded-[2rem] text-white flex flex-col lg:flex-row justify-between items-center gap-10 shadow-2xl relative overflow-hidden mb-10">
+                <div class="z-10 text-center lg:text-left">
+                    <p class="text-[10px] font-black opacity-70 tracking-[0.6em] mb-4 uppercase">TOTAL VALUASI MATERIAL</p>
+                    <h3 id="grand-total-budget" class="text-4xl md:text-6xl font-black italic tracking-tighter uppercase">RP 0</h3>
+                </div>
+                <i data-lucide="badge-dollar-sign" class="w-40 h-40 opacity-10 absolute right-[-20px] bottom-[-20px] lg:static"></i>
+            </div>
+            <div class="premium-card overflow-hidden">
+                <div class="p-6 border-b bg-slate-50">
+                    <h3 class="font-black text-xs tracking-widest uppercase">DETAIL HARGA SATUAN MATERIAL</h3>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm uppercase">
+                        <thead class="bg-slate-100 font-black border-b text-slate-500 text-[10px] uppercase">
+                            <tr>
+                                <th class="p-4">KATEGORI</th>
+                                <th class="p-4">NAMA MATERIAL</th>
+                                <th class="p-4 text-center">STOK</th>
+                                <th class="p-4 text-right">HARGA SATUAN</th>
+                                <th class="p-4 text-right">SUBTOTAL</th>
+                            </tr>
+                        </thead>
+                        <tbody id="valuation-table-body" class="divide-y font-bold"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
 
-    <div id="issueModal" class="fixed inset-0 modal-overlay flex items-center justify-center p-4 hidden">
-        <div class="bg-white w-full max-w-xl rounded-3xl shadow-2xl overflow-hidden animate-fadeIn">
-            <div class="bg-blue-900 p-6 text-white flex justify-between items-center">
-                <div>
-                    <h3 id="issueModalTitle" class="text-lg font-black uppercase tracking-tight">BARANG KELUAR</h3>
-                    <p id="issueModalSubTitle" class="text-[10px] font-bold opacity-60 mt-1 uppercase">DETAIL MATERIAL</p>
-                </div>
-                <button onclick="window.closeIssueModal()" class="hover:rotate-90 transition-all flex items-center justify-center"><i data-lucide="x" class="w-6 h-6"></i></button>
-            </div>
-            <form id="issueFormAction" class="p-6 md:p-8 space-y-6">
-                <input type="hidden" id="modalItemName">
-                <input type="hidden" id="modalItemType">
-                <input type="hidden" id="modalCategory">
-                <input type="hidden" id="modalUnit">
-                <input type="hidden" id="modalPrice">
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="space-y-2">
-                        <label class="text-[10px] font-black text-slate-400 ml-1 uppercase">JUMLAH KELUAR</label>
-                        <input type="number" id="modalQty" class="form-input-pld" required min="1">
-                    </div>
-                    <div class="space-y-2">
-                        <label class="text-[10px] font-black text-slate-400 ml-1 uppercase">TUJUAN</label>
-                        <select id="modalSubStatus" onchange="window.toggleModalSubPanels()" class="form-input-pld uppercase font-black">
-                            <option value="PEMINJAMAN">PEMINJAMAN</option>
-                            <option value="PERBAIKAN">PERBAIKAN</option>
-                        </select>
-                    </div>
-                </div>
-                <div id="modalPanelPeminjaman" class="space-y-4">
-                    <div class="space-y-2">
-                        <label class="text-[10px] font-black text-slate-400 ml-1 uppercase">NAMA PEMINJAM</label>
-                        <input type="text" id="modalPicBorrow" class="form-input-pld" placeholder="NAMA LENGKAP...">
-                    </div>
-                    <div class="grid grid-cols-2 gap-4">
-                        <div class="space-y-2">
-                            <label class="text-[10px] font-black text-slate-400 ml-1 uppercase">TGL PINJAM</label>
-                            <input type="date" id="modalDateBorrow" class="form-input-pld">
-                        </div>
-                        <div class="space-y-2">
-                            <label class="text-[10px] font-black text-slate-400 ml-1 uppercase">EST KEMBALI</label>
-                            <input type="date" id="modalDateReturn" class="form-input-pld">
-                        </div>
-                    </div>
-                    <div class="space-y-2">
-                        <label class="text-[10px] font-black text-slate-400 ml-1 uppercase">CATATAN PEMINJAMAN</label>
-                        <textarea id="modalNotesBorrow" class="form-input-pld h-16 resize-none uppercase" placeholder="KETERANGAN PINJAM..."></textarea>
-                    </div>
-                </div>
-                <div id="modalPanelInstalasi" class="hidden space-y-4">
-                    <div class="space-y-2">
-                        <label class="text-[10px] font-black text-slate-400 ml-1 uppercase">PELAKSANA / PIC</label>
-                        <input type="text" id="modalPicInstall" class="form-input-pld" placeholder="NAMA TEKNISI...">
-                    </div>
-                    <div class="space-y-2">
-                        <label class="text-[10px] font-black text-slate-400 ml-1 uppercase">LOKASI / CATATAN PROYEK</label>
-                        <textarea id="modalNotesInstall" class="form-input-pld h-20 resize-none uppercase" placeholder="LOKASI UNIT / CRANE..."></textarea>
-                    </div>
-                </div>
-                <button type="submit" id="btnConfirmIssue" class="w-full bg-[#004a99] text-white py-4 rounded-xl font-black text-xs tracking-widest uppercase hover:opacity-90 active:scale-[0.98] transition-all shadow-xl">KONFIRMASI PENGELUARAN</button>
-            </form>
-        </div>
-    </div>
+    <div id="issueModal" class="fixed inset-0 modal-overlay flex items-center justify-center p-4 hidden">
+        <div class="bg-white w-full max-w-xl rounded-3xl shadow-2xl overflow-hidden animate-fadeIn">
+            <div class="bg-blue-900 p-6 text-white flex justify-between items-center">
+                <div>
+                    <h3 id="issueModalTitle" class="text-lg font-black uppercase tracking-tight">BARANG KELUAR</h3>
+                    <p id="issueModalSubTitle" class="text-[10px] font-bold opacity-60 mt-1 uppercase">DETAIL MATERIAL</p>
+                </div>
+                <button onclick="window.closeIssueModal()" class="hover:rotate-90 transition-all flex items-center justify-center"><i data-lucide="x" class="w-6 h-6"></i></button>
+            </div>
+            <form id="issueFormAction" class="p-6 md:p-8 space-y-6">
+                <input type="hidden" id="modalItemName">
+                <input type="hidden" id="modalItemType">
+                <input type="hidden" id="modalCategory">
+                <input type="hidden" id="modalUnit">
+                <input type="hidden" id="modalPrice">
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="space-y-2">
+                        <label class="text-[10px] font-black text-slate-400 ml-1 uppercase">JUMLAH KELUAR</label>
+                        <input type="number" id="modalQty" class="form-input-pld" required min="1">
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-[10px] font-black text-slate-400 ml-1 uppercase">TUJUAN</label>
+                        <select id="modalSubStatus" onchange="window.toggleModalSubPanels()" class="form-input-pld uppercase font-black">
+                            <option value="PEMINJAMAN">PINJAM</option>
+                            <option value="PROYEK">PROYEK / INSTALASI</option>
+                        </select>
+                    </div>
+                </div>
+                <div id="modalPanelPeminjaman" class="space-y-4">
+                    <div class="space-y-2">
+                        <label class="text-[10px] font-black text-slate-400 ml-1 uppercase">NAMA PEMINJAM</label>
+                        <input type="text" id="modalPicBorrow" class="form-input-pld" placeholder="NAMA LENGKAP...">
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="space-y-2">
+                            <label class="text-[10px] font-black text-slate-400 ml-1 uppercase">TGL PINJAM</label>
+                            <input type="date" id="modalDateBorrow" class="form-input-pld">
+                        </div>
+                        <div class="space-y-2">
+                            <label class="text-[10px] font-black text-slate-400 ml-1 uppercase">ESTIMASI KEMBALI</label>
+                            <input type="date" id="modalDateReturn" class="form-input-pld">
+                        </div>
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-[10px] font-black text-slate-400 ml-1 uppercase">CATATAN PEMINJAMAN</label>
+                        <textarea id="modalNotesBorrow" class="form-input-pld h-16 resize-none uppercase" placeholder="KETERANGAN PINJAM..."></textarea>
+                    </div>
+                </div>
+                <div id="modalPanelInstalasi" class="hidden space-y-4">
+                    <div class="space-y-2">
+                        <label class="text-[10px] font-black text-slate-400 ml-1 uppercase">PELAKSANA / PIC</label>
+                        <input type="text" id="modalPicInstall" class="form-input-pld" placeholder="NAMA TEKNISI...">
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-[10px] font-black text-slate-400 ml-1 uppercase">LOKASI / CATATAN PROYEK</label>
+                        <textarea id="modalNotesInstall" class="form-input-pld h-20 resize-none uppercase" placeholder="LOKASI UNIT / CRANE..."></textarea>
+                    </div>
+                </div>
+                <button type="submit" id="btnConfirmIssue" class="w-full bg-[#004a99] text-white py-4 rounded-xl font-black text-xs tracking-widest uppercase hover:opacity-90 active:scale-[0.98] transition-all shadow-xl">KONFIRMASI PENGELUARAN</button>
+            </form>
+        </div>
+    </div>
 
-    <div id="toast" class="fixed bottom-10 left-1/2 -translate-x-1/2 bg-slate-900 text-white px-8 py-4 rounded-2xl text-[11px] font-black tracking-[0.2em] uppercase opacity-0 transition-all duration-300 z-[300] shadow-2xl pointer-events-none">BERHASIL</div>
+    <div id="toast" class="fixed bottom-10 left-1/2 -translate-x-1/2 bg-slate-900 text-white px-8 py-4 rounded-2xl text-[11px] font-black tracking-[0.2em] uppercase opacity-0 transition-all duration-300 z-[300] shadow-2xl pointer-events-none">BERHASIL</div>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, deleteDoc, doc, updateDoc, onSnapshot, getDocs, writeBatch } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, deleteDoc, doc, updateDoc, onSnapshot, getDocs, writeBatch } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        window.toggleMenu = (show) => {
-            const menu = document.getElementById('sidebar-menu');
-            const overlay = document.getElementById('sidebar-overlay');
-            if (menu && overlay) {
-                if(show) { menu.classList.add('open'); overlay.classList.add('active'); } 
-                else { menu.classList.remove('open'); overlay.classList.remove('active'); }
-            }
-        };
+        window.toggleMenu = (show) => {
+            const menu = document.getElementById('sidebar-menu');
+            const overlay = document.getElementById('sidebar-overlay');
+            if (menu && overlay) {
+                if(show) { menu.classList.add('open'); overlay.classList.add('active'); } 
+                else { menu.classList.remove('open'); overlay.classList.remove('active'); }
+            }
+        };
 
-        window.switchView = (v) => {
-            document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active-view'));
-            document.querySelectorAll('.nav-btn-sidebar').forEach(b => b.classList.remove('active'));
-            const target = document.getElementById(`view-${v}`);
-            if (target) target.classList.add('active-view');
-            const btn = document.getElementById(`nav-${v}`);
-            if (btn) btn.classList.add('active');
-            window.toggleMenu(false); 
-            renderAll();
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-            if(window.lucide) lucide.createIcons();
-        };
+        window.switchView = (v) => {
+            document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active-view'));
+            document.querySelectorAll('.nav-btn-sidebar').forEach(b => b.classList.remove('active'));
+            const target = document.getElementById(`view-${v}`);
+            if (target) target.classList.add('active-view');
+            const btn = document.getElementById(`nav-${v}`);
+            if (btn) btn.classList.add('active');
+            window.toggleMenu(false); 
+            renderAll();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            if(window.lucide) lucide.createIcons();
+        };
 
-        // --- KONFIGURASI FIREBASE ---
-        const userFirebaseConfig = {
-            apiKey: "AIzaSyAIwAX6CaRy-PLa_KUhMyl_b5CnNia1DxM",
-            authDomain: "inventaris-pelindo-t2.firebaseapp.com",
-            projectId: "inventaris-pelindo-t2",
-            storageBucket: "inventaris-pelindo-t2.firebasestorage.app",
-            messagingSenderId: "92778704858",
-            appId: "1:92778704858:web:8664db80ccd46ad0d31ae3",
-            measurementId: "G-CXMESTJTXD"
-        };
-        
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'pld-inventory-v2';
-        let db, auth;
-        
-        // Cek apakah ada config sistem atau gunakan config user
-        const finalConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : userFirebaseConfig;
+        // --- KONFIGURASI FIREBASE ---
+        const userFirebaseConfig = {
+            apiKey: "AIzaSyAIwAX6CaRy-PLa_KUhMyl_b5CnNia1DxM",
+            authDomain: "inventaris-pelindo-t2.firebaseapp.com",
+            projectId: "inventaris-pelindo-t2",
+            storageBucket: "inventaris-pelindo-t2.firebasestorage.app",
+            messagingSenderId: "92778704858",
+            appId: "1:92778704858:web:8664db80ccd46ad0d31ae3",
+            measurementId: "G-CXMESTJTXD"
+        };
+        
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'pld-inventory-v2';
+        let db, auth;
+        
+        // Cek apakah ada config sistem atau gunakan config user
+        const finalConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : userFirebaseConfig;
 
-        try {
-            const app = initializeApp(finalConfig);
-            auth = getAuth(app);
-            db = getFirestore(app);
-        } catch (e) { 
-            console.error("Firebase Initialization Error", e); 
-        }
+        try {
+            const app = initializeApp(finalConfig);
+            auth = getAuth(app);
+            db = getFirestore(app);
+        } catch (e) { 
+            console.error("Firebase Initialization Error", e); 
+        }
 
-        let inventory = [];
-        let searchQuery = "";
-        let issueSearchQuery = "";
-        let charts = {};
+        let inventory = [];
+        let searchQuery = "";
+        let issueSearchQuery = "";
+        let charts = {};
 
-        window.handleSearch = (q) => { searchQuery = q.toUpperCase(); renderAll(); };
-        window.handleIssueSearch = (q) => { issueSearchQuery = q.toUpperCase(); renderIssueList(); };
+        window.handleSearch = (q) => { searchQuery = q.toUpperCase(); renderAll(); };
+        window.handleIssueSearch = (q) => { issueSearchQuery = q.toUpperCase(); renderIssueList(); };
 
-        window.deleteItem = async (id) => {
-            if (!db || !auth || !auth.currentUser) return;
-            if (confirm("Hapus data ini?")) {
-                await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'inventory_logs', id));
-                showToast("DATA DIHAPUS");
-            }
-        };
+        window.deleteItem = async (id) => {
+            if (!db || !auth || !auth.currentUser) return;
+            if (confirm("Hapus data ini?")) {
+                await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'inventory_logs', id));
+                showToast("DATA DIHAPUS");
+            }
+        };
 
-        window.returnItem = async (id) => {
-            if (!db || !auth || !auth.currentUser) return;
-            const item = inventory.find(i => i.id === id);
-            if (!item) return;
-            if (confirm(`KONFIRMASI PENGEMBALIAN MATERIAL: ${item.name}?`)) {
-                try {
-                    await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'inventory_logs'), {
-                        name: item.name,
-                        type: item.type,
-                        category: item.category,
-                        qty: item.qty,
-                        unit: item.unit,
-                        price: item.price || 0,
-                        status: 'MASUK', 
-                        subStatus: 'PENGEMBALIAN', 
-                        notesInstall: `PENGEMBALIAN DARI: ${item.picBorrow}`,
-                        picBorrow: item.picBorrow,
-                        createdAt: Date.now(), 
-                        timestamp: new Date().toLocaleString('id-ID', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })
-                    });
-                    
-                    await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'inventory_logs', id), {
-                        subStatus: 'PEMINJAMAN_SELESAI'
-                    });
-                    
-                    showToast("PROSES PENGEMBALIAN BERHASIL");
-                } catch (err) {
-                    console.error(err);
-                    showToast("GAGAL PROSES", "bg-red-600");
-                }
-            }
-        };
+        window.returnItem = async (id) => {
+            if (!db || !auth || !auth.currentUser) return;
+            const item = inventory.find(i => i.id === id);
+            if (!item) return;
+            if (confirm(`KONFIRMASI PENGEMBALIAN MATERIAL: ${item.name}?`)) {
+                try {
+                    await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'inventory_logs'), {
+                        name: item.name,
+                        type: item.type,
+                        category: item.category,
+                        qty: item.qty,
+                        unit: item.unit,
+                        price: item.price || 0,
+                        status: 'MASUK', 
+                        subStatus: 'PENGEMBALIAN', 
+                        notesInstall: `PENGEMBALIAN DARI: ${item.picBorrow}`,
+                        picBorrow: item.picBorrow,
+                        createdAt: Date.now(), 
+                        timestamp: new Date().toLocaleString('id-ID', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })
+                    });
+                    
+                    await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'inventory_logs', id), {
+                        subStatus: 'PEMINJAMAN_SELESAI'
+                    });
+                    
+                    showToast("PROSES PENGEMBALIAN BERHASIL");
+                } catch (err) {
+                    console.error(err);
+                    showToast("GAGAL PROSES", "bg-red-600");
+                }
+            }
+        };
 
-        window.adjustStockManual = async (name, type, cat, unit, price, delta) => {
-            if (!db || !auth || !auth.currentUser) return;
-            await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'inventory_logs'), {
-                name, type, category: cat, unit, price: Number(price) || 0, qty: Math.abs(delta),
-                status: delta > 0 ? 'MASUK' : 'KELUAR', 
-                subStatus: 'ADJUST',
-                notesInstall: 'PENYESUAIAN STOK MANUAL (TOMBOL +/-)', 
-                createdAt: Date.now(),
-                timestamp: new Date().toLocaleString('id-ID', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })
-            });
-            showToast("STOK DIPERBARUI");
-        };
+        window.adjustStockManual = async (name, type, cat, unit, price, delta) => {
+            if (!db || !auth || !auth.currentUser) return;
+            await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'inventory_logs'), {
+                name, type, category: cat, unit, price: Number(price) || 0, qty: Math.abs(delta),
+                status: delta > 0 ? 'MASUK' : 'KELUAR', 
+                subStatus: 'ADJUST',
+                notesInstall: 'PENYESUAIAN STOK MANUAL (TOMBOL +/-)', 
+                createdAt: Date.now(),
+                timestamp: new Date().toLocaleString('id-ID', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })
+            });
+            showToast("STOK DIPERBARUI");
+        };
 
-        window.openIssueModal = (item) => {
-            document.getElementById('issueModalTitle').innerText = item.n;
-            document.getElementById('issueModalSubTitle').innerText = `${item.t} | STOK: ${item.q}`;
-            document.getElementById('modalItemName').value = item.n;
-            document.getElementById('modalItemType').value = item.t;
-            document.getElementById('modalCategory').value = item.c;
-            document.getElementById('modalUnit').value = item.u;
-            document.getElementById('modalPrice').value = item.p || 0;
-            document.getElementById('issueModal').classList.remove('hidden');
-            if(window.lucide) lucide.createIcons();
-        };
+        window.openIssueModal = (item) => {
+            document.getElementById('issueModalTitle').innerText = item.n;
+            document.getElementById('issueModalSubTitle').innerText = `${item.t} | STOK: ${item.q}`;
+            document.getElementById('modalItemName').value = item.n;
+            document.getElementById('modalItemType').value = item.t;
+            document.getElementById('modalCategory').value = item.c;
+            document.getElementById('modalUnit').value = item.u;
+            document.getElementById('modalPrice').value = item.p || 0;
+            document.getElementById('issueModal').classList.remove('hidden');
+            if(window.lucide) lucide.createIcons();
+        };
 
-        window.closeIssueModal = () => {
-            document.getElementById('issueModal').classList.add('hidden');
-            document.getElementById('issueFormAction').reset();
-            window.toggleModalSubPanels();
-        };
+        window.closeIssueModal = () => {
+            document.getElementById('issueModal').classList.add('hidden');
+            document.getElementById('issueFormAction').reset();
+            window.toggleModalSubPanels();
+        };
 
-        window.toggleModalSubPanels = () => {
-            const val = document.getElementById('modalSubStatus').value;
-            document.getElementById('modalPanelPeminjaman').classList.toggle('hidden', val !== 'PEMINJAMAN');
-            document.getElementById('modalPanelInstalasi').classList.toggle('hidden', val !== 'PROYEK');
-        };
+        window.toggleModalSubPanels = () => {
+            const val = document.getElementById('modalSubStatus').value;
+            document.getElementById('modalPanelPeminjaman').classList.toggle('hidden', val !== 'PEMINJAMAN');
+            document.getElementById('modalPanelInstalasi').classList.toggle('hidden', val !== 'PROYEK');
+        };
 
-        window.importDataMultiSheets = async (e) => {
-            if (!db || !auth || !auth.currentUser) return;
-            const file = e.target.files[0];
-            if (!file) return;
-            showToast("MEMPROSES FILE...");
-            const reader = new FileReader();
-            reader.onload = async (event) => {
-                try {
-                    const workbook = XLSX.read(new Uint8Array(event.target.result), { type: 'array' });
-                    let count = 0;
-                    for (const sName of workbook.SheetNames) {
-                        const ws = workbook.Sheets[sName];
-                        const rows = XLSX.utils.sheet_to_json(ws, { header: 1 });
-                        const cat = sName.toUpperCase().includes("ELEC") ? "ELECTRICAL" : (sName.toUpperCase().includes("PLUM") ? "PLUMBING" : "MECHANICAL");
-                        let headerIdx = -1;
-                        for(let i=0; i<rows.length; i++){ if(rows[i] && rows[i].some(c => String(c).toUpperCase().includes("NAMA"))){ headerIdx = i; break; } }
-                        if(headerIdx === -1) continue;
-                        const header = rows[headerIdx].map(h => String(h || "").trim().toUpperCase());
-                        const colMap = { name: header.findIndex(h => h.includes("NAMA")), type: header.findIndex(h => h.includes("TIPE")), vol: header.findIndex(h => h.includes("VOL") || h.includes("QTY")), sat: header.findIndex(h => h.includes("SAT") || h.includes("UNIT")), price: header.findIndex(h => h.includes("HARGA")) };
-                        for(let j = headerIdx + 1; j < rows.length; j++) {
-                            const r = rows[j];
-                            if(!r || !r[colMap.name]) continue;
-                            const qty = parseInt(r[colMap.vol]) || 0;
-                            if(qty <= 0) continue;
-                            await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'inventory_logs'), {
-                                name: String(r[colMap.name]).trim().toUpperCase(), category: cat, type: String(r[colMap.type] || "UMUM").trim().toUpperCase(),
-                                qty: qty, unit: String(r[colMap.sat] || "PCS").trim().toUpperCase(), price: Number(String(r[colMap.price] || "0").replace(/[^0-9]/g, '')) || 0,
-                                status: 'MASUK', subStatus: 'IMPOR', notesInstall: `IMPOR SHEET: ${sName}`, createdAt: Date.now(),
-                                timestamp: new Date().toLocaleString('id-ID', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })
-                            });
-                            count++;
-                        }
-                    }
-                    showToast(`${count} DATA DIIMPOR`); window.switchView('dashboard');
-                } catch (err) { showToast("GAGAL", "bg-red-600"); }
-            };
-            reader.readAsArrayBuffer(file);
-        };
+        window.importDataMultiSheets = async (e) => {
+            if (!db || !auth || !auth.currentUser) return;
+            const file = e.target.files[0];
+            if (!file) return;
+            showToast("MEMPROSES FILE...");
+            const reader = new FileReader();
+            reader.onload = async (event) => {
+                try {
+                    const workbook = XLSX.read(new Uint8Array(event.target.result), { type: 'array' });
+                    let count = 0;
+                    for (const sName of workbook.SheetNames) {
+                        const ws = workbook.Sheets[sName];
+                        const rows = XLSX.utils.sheet_to_json(ws, { header: 1 });
+                        const cat = sName.toUpperCase().includes("ELEC") ? "ELECTRICAL" : (sName.toUpperCase().includes("PLUM") ? "PLUMBING" : "MECHANICAL");
+                        let headerIdx = -1;
+                        for(let i=0; i<rows.length; i++){ if(rows[i] && rows[i].some(c => String(c).toUpperCase().includes("NAMA"))){ headerIdx = i; break; } }
+                        if(headerIdx === -1) continue;
+                        const header = rows[headerIdx].map(h => String(h || "").trim().toUpperCase());
+                        const colMap = { name: header.findIndex(h => h.includes("NAMA")), type: header.findIndex(h => h.includes("TIPE")), vol: header.findIndex(h => h.includes("VOL") || h.includes("QTY")), sat: header.findIndex(h => h.includes("SAT") || h.includes("UNIT")), price: header.findIndex(h => h.includes("HARGA")) };
+                        for(let j = headerIdx + 1; j < rows.length; j++) {
+                            const r = rows[j];
+                            if(!r || !r[colMap.name]) continue;
+                            const qty = parseInt(r[colMap.vol]) || 0;
+                            if(qty <= 0) continue;
+                            await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'inventory_logs'), {
+                                name: String(r[colMap.name]).trim().toUpperCase(), category: cat, type: String(r[colMap.type] || "UMUM").trim().toUpperCase(),
+                                qty: qty, unit: String(r[colMap.sat] || "PCS").trim().toUpperCase(), price: Number(String(r[colMap.price] || "0").replace(/[^0-9]/g, '')) || 0,
+                                status: 'MASUK', subStatus: 'IMPOR', notesInstall: `IMPOR SHEET: ${sName}`, createdAt: Date.now(),
+                                timestamp: new Date().toLocaleString('id-ID', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })
+                            });
+                            count++;
+                        }
+                    }
+                    showToast(`${count} DATA DIIMPOR`); window.switchView('dashboard');
+                } catch (err) { showToast("GAGAL", "bg-red-600"); }
+            };
+            reader.readAsArrayBuffer(file);
+        };
 
-        window.exportData = (format) => {
-            const head = ["WAKTU", "KATEGORI", "MATERIAL", "TIPE", "QTY", "UNIT", "STATUS", "KETERANGAN"];
-            const rows = inventory.map(i => [i.timestamp, i.category, i.name, i.type, i.qty, i.unit, i.status, i.notesInstall || i.notesBorrow || '-']);
-            if(format === 'xlsx') {
-                const ws = XLSX.utils.aoa_to_sheet([head, ...rows]);
-                const wb = XLSX.utils.book_new();
-                XLSX.utils.book_append_sheet(wb, ws, "Laporan");
-                XLSX.writeFile(wb, "LAPORAN_PELINDO.xlsx");
-            } else if (format === 'word') {
-                const { Document, Packer, Paragraph, Table, TableRow, TableCell, WidthType, TextRun } = docx;
-                const docObj = new Document({ sections: [{ children: [
-                    new Paragraph({ children: [new TextRun({ text: "LAPORAN INVENTARIS PT PELINDO PETIKEMAS", bold: true, size: 28 })], spacing: { after: 400 } }),
-                    new Table({ width: { size: 100, type: WidthType.PERCENTAGE }, rows: [
-                        new TableRow({ children: head.map(h => new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: h, bold: true })] })], shading: { fill: "f3f4f6" } })) }),
-                        ...rows.map(r => new TableRow({ children: r.map(c => new TableCell({ children: [new Paragraph(String(c))] })) }))
-                    ]})
-                ]}]});
-                Packer.toBlob(docObj).then(blob => saveAs(blob, "LAPORAN_PELINDO.docx"));
-            } else {
-                const { jsPDF } = window.jspdf;
-                const docPdf = new jsPDF('landscape');
-                docPdf.autoTable({ head: [head], body: rows });
-                docPdf.save("LAPORAN_PELINDO.pdf");
-            }
-        };
+        window.exportData = (format) => {
+            const head = ["WAKTU", "KATEGORI", "MATERIAL", "TIPE", "QTY", "UNIT", "STATUS", "KETERANGAN"];
+            const rows = inventory.map(i => [i.timestamp, i.category, i.name, i.type, i.qty, i.unit, i.status, i.notesInstall || i.notesBorrow || '-']);
+            if(format === 'xlsx') {
+                const ws = XLSX.utils.aoa_to_sheet([head, ...rows]);
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, "Laporan");
+                XLSX.writeFile(wb, "LAPORAN_PELINDO.xlsx");
+            } else if (format === 'word') {
+                const { Document, Packer, Paragraph, Table, TableRow, TableCell, WidthType, TextRun } = docx;
+                const docObj = new Document({ sections: [{ children: [
+                    new Paragraph({ children: [new TextRun({ text: "LAPORAN INVENTARIS PT PELINDO PETIKEMAS", bold: true, size: 28 })], spacing: { after: 400 } }),
+                    new Table({ width: { size: 100, type: WidthType.PERCENTAGE }, rows: [
+                        new TableRow({ children: head.map(h => new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: h, bold: true })] })], shading: { fill: "f3f4f6" } })) }),
+                        ...rows.map(r => new TableRow({ children: r.map(c => new TableCell({ children: [new Paragraph(String(c))] })) }))
+                    ]})
+                ]}]});
+                Packer.toBlob(docObj).then(blob => saveAs(blob, "LAPORAN_PELINDO.docx"));
+            } else {
+                const { jsPDF } = window.jspdf;
+                const docPdf = new jsPDF('landscape');
+                docPdf.autoTable({ head: [head], body: rows });
+                docPdf.save("LAPORAN_PELINDO.pdf");
+            }
+        };
 
-        window.clearAllData = async () => {
-            if (!db || !auth || !auth.currentUser) return;
-            if(confirm("HAPUS SEMUA DATA?")) {
-                const snap = await getDocs(collection(db, 'artifacts', appId, 'public', 'data', 'inventory_logs'));
-                const batch = writeBatch(db);
-                snap.docs.forEach(d => batch.delete(d.ref));
-                await batch.commit();
-                showToast("DATABASE BERSIH", "bg-red-600");
-            }
-        };
+        window.clearAllData = async () => {
+            if (!db || !auth || !auth.currentUser) return;
+            if(confirm("HAPUS SEMUA DATA?")) {
+                const snap = await getDocs(collection(db, 'artifacts', appId, 'public', 'data', 'inventory_logs'));
+                const batch = writeBatch(db);
+                snap.docs.forEach(d => batch.delete(d.ref));
+                await batch.commit();
+                showToast("DATABASE BERSIH", "bg-red-600");
+            }
+        };
 
-        function renderAll() {
-            const filtered = inventory.filter(i => i.name.includes(searchQuery) || i.category.includes(searchQuery));
-            renderLogs(filtered); renderStock(); renderLoan(); renderValuation(); renderCharts(); renderIssueList();
-            if(window.lucide) lucide.createIcons();
-        }
+        function renderAll() {
+            const filtered = inventory.filter(i => i.name.includes(searchQuery) || i.category.includes(searchQuery));
+            renderLogs(filtered); renderStock(); renderLoan(); renderValuation(); renderCharts(); renderIssueList();
+            if(window.lucide) lucide.createIcons();
+        }
 
-        function renderLogs(items) {
-            const container = document.getElementById('log-container');
-            if(!container) return;
-            container.innerHTML = '';
-            document.getElementById('entri-count').innerText = `${items.length} ENTRI TERDATA`;
-            items.slice(0, 50).forEach(item => {
-                const div = document.createElement('div');
-                div.className = "premium-card p-4 border-l-8";
-                div.style.borderLeftColor = item.category === 'ELECTRICAL' ? '#0ea5e9' : (item.category === 'MECHANICAL' ? '#f97316' : '#10b981');
-                
-                let detailNote = "";
-                let subLabelColor = "bg-slate-100 text-slate-500";
-                
-                if(item.subStatus === 'PROYEK') {
-                    detailNote = `PIC: ${item.picInstall || '-'} | LOKASI: ${item.notesInstall || '-'}`;
-                    subLabelColor = "bg-blue-100 text-blue-700";
-                } else if(item.subStatus === 'PEMINJAMAN') {
-                    detailNote = `PEMINJAM: ${item.picBorrow || '-'} | CATATAN: ${item.notesBorrow || '-'}`;
-                    subLabelColor = "bg-orange-100 text-orange-700";
-                } else if(item.subStatus === 'PENGEMBALIAN') {
-                    detailNote = `DARI: ${item.picBorrow || '-'} | KETERANGAN: ${item.notesInstall || '-'}`;
-                    subLabelColor = "bg-emerald-100 text-emerald-700";
-                } else if(item.subStatus === 'ADJUST') {
-                    detailNote = item.notesInstall || '';
-                    subLabelColor = "bg-red-100 text-red-700";
-                } else {
-                    detailNote = item.notesInstall || item.notesBorrow || '';
-                }
+        function renderLogs(items) {
+            const container = document.getElementById('log-container');
+            if(!container) return;
+            container.innerHTML = '';
+            document.getElementById('entri-count').innerText = `${items.length} ENTRI TERDATA`;
+            items.slice(0, 50).forEach(item => {
+                const div = document.createElement('div');
+                div.className = "premium-card p-4 border-l-8";
+                div.style.borderLeftColor = item.category === 'ELECTRICAL' ? '#0ea5e9' : (item.category === 'MECHANICAL' ? '#f97316' : '#10b981');
+                
+                let detailNote = "";
+                let subLabelColor = "bg-slate-100 text-slate-500";
+                
+                if(item.subStatus === 'PROYEK') {
+                    detailNote = `PIC: ${item.picInstall || '-'} | LOKASI: ${item.notesInstall || '-'}`;
+                    subLabelColor = "bg-blue-100 text-blue-700";
+                } else if(item.subStatus === 'PEMINJAMAN') {
+                    detailNote = `PEMINJAM: ${item.picBorrow || '-'} | CATATAN: ${item.notesBorrow || '-'}`;
+                    subLabelColor = "bg-orange-100 text-orange-700";
+                } else if(item.subStatus === 'PENGEMBALIAN') {
+                    detailNote = `DARI: ${item.picBorrow || '-'} | KETERANGAN: ${item.notesInstall || '-'}`;
+                    subLabelColor = "bg-emerald-100 text-emerald-700";
+                } else if(item.subStatus === 'ADJUST') {
+                    detailNote = item.notesInstall || '';
+                    subLabelColor = "bg-red-100 text-red-700";
+                } else {
+                    detailNote = item.notesInstall || item.notesBorrow || '';
+                }
 
-                div.innerHTML = `
-                    <div class="flex justify-between items-start">
-                        <div class="flex-1 min-w-0 pr-4">
-                            <div class="flex items-center gap-2 mb-1 flex-wrap">
-                                <span class="${subLabelColor} px-2 py-0.5 rounded-lg text-[8px] font-black tracking-wider uppercase">${item.subStatus || 'INPUT'}</span>
-                                <span class="text-xs font-black text-slate-800 uppercase">${item.name}</span>
-                                <span class="status-pill ${item.status === 'MASUK' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-red-50 text-red-600 border-red-100'}">${item.status}</span>
-                            </div>
-                            <div class="text-[9px] text-slate-400 font-bold mb-2 uppercase tracking-wide">
-                                ${item.qty} ${item.unit} • ${item.timestamp} • ${item.type}
-                            </div>
-                            ${detailNote ? `<div class="text-[9px] text-slate-600 font-bold bg-slate-50 p-2 rounded-xl border border-slate-100 italic">INFO: ${detailNote}</div>` : ''}
-                        </div>
-                        <button onclick="window.deleteItem('${item.id}')" class="text-slate-200 hover:text-red-500 mt-1 transition-all"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
-                    </div>
-                `;
-                container.appendChild(div);
-            });
-        }
+                div.innerHTML = `
+                    <div class="flex justify-between items-start">
+                        <div class="flex-1 min-w-0 pr-4">
+                            <div class="flex items-center gap-2 mb-1 flex-wrap">
+                                <span class="${subLabelColor} px-2 py-0.5 rounded-lg text-[8px] font-black tracking-wider uppercase">${item.subStatus || 'INPUT'}</span>
+                                <span class="text-xs font-black text-slate-800 uppercase">${item.name}</span>
+                                <span class="status-pill ${item.status === 'MASUK' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-red-50 text-red-600 border-red-100'}">${item.status}</span>
+                            </div>
+                            <div class="text-[9px] text-slate-400 font-bold mb-2 uppercase tracking-wide">
+                                ${item.qty} ${item.unit} • ${item.timestamp} • ${item.type}
+                            </div>
+                            ${detailNote ? `<div class="text-[9px] text-slate-600 font-bold bg-slate-50 p-2 rounded-xl border border-slate-100 italic">INFO: ${detailNote}</div>` : ''}
+                        </div>
+                        <button onclick="window.deleteItem('${item.id}')" class="text-slate-200 hover:text-red-500 mt-1 transition-all"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        }
 
-        function renderStock() {
-            const sum = {};
-            inventory.forEach(i => {
-                const key = `${i.name}|${i.type}`;
-                if(!sum[key]) sum[key] = { n: i.name, t: i.type, q: 0, u: i.unit, c: i.category, p: i.price };
-                sum[key].q += (i.status === 'MASUK' ? i.qty : -i.qty);
-            });
-            ['MECHANICAL', 'ELECTRICAL', 'PLUMBING'].forEach(cat => {
-                const list = document.getElementById(`stock-list-${cat}`);
-                if(!list) return; list.innerHTML = '';
-                Object.values(sum).filter(s => s.c === cat).forEach(item => {
-                    if(item.q === 0) return;
-                    const div = document.createElement('div');
-                    div.className = `premium-card p-4 ${item.q < 5 ? 'bg-red-50 border-red-100' : ''}`;
-                    div.innerHTML = `
-                        <div class="flex justify-between items-start mb-1"><span class="text-[10px] font-black truncate uppercase">${item.n}</span><span class="text-[9px] font-bold text-slate-400">${item.u}</span></div>
-                        <div class="flex justify-between items-center">
-                            <div class="flex items-center gap-2">
-                                <button onclick="window.adjustStockManual('${item.n.replace(/'/g, "\\'")}', '${item.t.replace(/'/g, "\\'")}', '${item.c}', '${item.u}', ${item.p}, -1)" class="adjust-btn"><i data-lucide="minus" class="w-3 h-3"></i></button>
-                                <span class="text-xl font-black">${item.q}</span>
-                                <button onclick="window.adjustStockManual('${item.n.replace(/'/g, "\\'")}', '${item.t.replace(/'/g, "\\'")}', '${item.c}', '${item.u}', ${item.p}, 1)" class="adjust-btn"><i data-lucide="plus" class="w-3 h-3"></i></button>
-                            </div>
-                            <span class="text-[8px] font-bold text-slate-400 italic tracking-tighter">${item.t}</span>
-                        </div>
-                    `;
-                    list.appendChild(div);
-                });
-            });
-        }
+        function renderStock() {
+            const sum = {};
+            inventory.forEach(i => {
+                const key = `${i.name}|${i.type}`;
+                if(!sum[key]) sum[key] = { n: i.name, t: i.type, q: 0, u: i.unit, c: i.category, p: i.price };
+                sum[key].q += (i.status === 'MASUK' ? i.qty : -i.qty);
+            });
+            ['MECHANICAL', 'ELECTRICAL', 'PLUMBING'].forEach(cat => {
+                const list = document.getElementById(`stock-list-${cat}`);
+                if(!list) return; list.innerHTML = '';
+                Object.values(sum).filter(s => s.c === cat).forEach(item => {
+                    if(item.q === 0) return;
+                    const div = document.createElement('div');
+                    div.className = `premium-card p-4 ${item.q < 5 ? 'bg-red-50 border-red-100' : ''}`;
+                    div.innerHTML = `
+                        <div class="flex justify-between items-start mb-1"><span class="text-[10px] font-black truncate uppercase">${item.n}</span><span class="text-[9px] font-bold text-slate-400">${item.u}</span></div>
+                        <div class="flex justify-between items-center">
+                            <div class="flex items-center gap-2">
+                                <button onclick="window.adjustStockManual('${item.n.replace(/'/g, "\\'")}', '${item.t.replace(/'/g, "\\'")}', '${item.c}', '${item.u}', ${item.p}, -1)" class="adjust-btn"><i data-lucide="minus" class="w-3 h-3"></i></button>
+                                <span class="text-xl font-black">${item.q}</span>
+                                <button onclick="window.adjustStockManual('${item.n.replace(/'/g, "\\'")}', '${item.t.replace(/'/g, "\\'")}', '${item.c}', '${item.u}', ${item.p}, 1)" class="adjust-btn"><i data-lucide="plus" class="w-3 h-3"></i></button>
+                            </div>
+                            <span class="text-[8px] font-bold text-slate-400 italic tracking-tighter">${item.t}</span>
+                        </div>
+                    `;
+                    list.appendChild(div);
+                });
+            });
+        }
 
-        function renderIssueList() {
-            const sum = {};
-            inventory.forEach(i => {
-                const key = `${i.name}|${i.type}`;
-                if(!sum[key]) sum[key] = { n: i.name, t: i.type, q: 0, u: i.unit, c: i.category, p: i.price };
-                sum[key].q += (i.status === 'MASUK' ? i.qty : -i.qty);
-            });
-            ['MECHANICAL', 'ELECTRICAL', 'PLUMBING'].forEach(cat => {
-                const list = document.getElementById(`issue-list-${cat}`);
-                if(!list) return; list.innerHTML = '';
-                Object.values(sum).filter(s => s.c === cat && s.q > 0).forEach(item => {
-                    if(issueSearchQuery && !item.n.includes(issueSearchQuery)) return;
-                    const div = document.createElement('div');
-                    div.className = "premium-card p-4 cursor-pointer hover:border-blue-500 transition-all";
-                    div.onclick = () => window.openIssueModal(item);
-                    div.innerHTML = `<div class="flex justify-between items-center"><div class="min-w-0 pr-2"><p class="text-[10px] font-black truncate uppercase">${item.n}</p><p class="text-[8px] text-slate-400 italic mt-1 uppercase">${item.t}</p></div><span class="text-lg font-black text-blue-600">${item.q}</span></div>`;
-                    list.appendChild(div);
-                });
-            });
-        }
+        function renderIssueList() {
+            const sum = {};
+            inventory.forEach(i => {
+                const key = `${i.name}|${i.type}`;
+                if(!sum[key]) sum[key] = { n: i.name, t: i.type, q: 0, u: i.unit, c: i.category, p: i.price };
+                sum[key].q += (i.status === 'MASUK' ? i.qty : -i.qty);
+            });
+            ['MECHANICAL', 'ELECTRICAL', 'PLUMBING'].forEach(cat => {
+                const list = document.getElementById(`issue-list-${cat}`);
+                if(!list) return; list.innerHTML = '';
+                Object.values(sum).filter(s => s.c === cat && s.q > 0).forEach(item => {
+                    if(issueSearchQuery && !item.n.includes(issueSearchQuery)) return;
+                    const div = document.createElement('div');
+                    div.className = "premium-card p-4 cursor-pointer hover:border-blue-500 transition-all";
+                    div.onclick = () => window.openIssueModal(item);
+                    div.innerHTML = `<div class="flex justify-between items-center"><div class="min-w-0 pr-2"><p class="text-[10px] font-black truncate uppercase">${item.n}</p><p class="text-[8px] text-slate-400 italic mt-1 uppercase">${item.t}</p></div><span class="text-lg font-black text-blue-600">${item.q}</span></div>`;
+                    list.appendChild(div);
+                });
+            });
+        }
 
-        function renderLoan() {
-            const body = document.getElementById('loan-table-body');
-            if(!body) return; body.innerHTML = '';
-            inventory.filter(i => i.subStatus === 'PEMINJAMAN').forEach(loan => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td class="p-4"><span class="text-blue-900 font-black text-xs uppercase">${loan.picBorrow || 'PEMINJAM'}</span></td>
-                    <td class="p-4"><span class="text-slate-800 text-[10px] font-bold uppercase">${loan.name}</span></td>
-                    <td class="p-4 text-center text-xs font-black uppercase">${loan.qty} ${loan.unit}</td>
-                    <td class="p-4"><span class="text-[9px] font-bold text-slate-400 italic uppercase">${loan.notesBorrow || '-'}</span></td>
-                    <td class="p-4 text-[9px] hidden md:table-cell text-slate-400 uppercase tracking-tighter">${loan.dateBorrow || '-'}</td>
-                    <td class="p-4 text-right">
-                        <button onclick="window.returnItem('${loan.id}')" class="text-emerald-500 hover:scale-110 active:scale-95 transition-all p-2 rounded-full hover:bg-emerald-50" title="Tandai Sudah Kembali">
-                            <i data-lucide="check-circle" class="w-6 h-6"></i>
-                        </button>
-                    </td>
-                `;
-                body.appendChild(row);
-            });
-        }
+        function renderLoan() {
+            const body = document.getElementById('loan-table-body');
+            if(!body) return; body.innerHTML = '';
+            inventory.filter(i => i.subStatus === 'PEMINJAMAN').forEach(loan => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td class="p-4"><span class="text-blue-900 font-black text-xs uppercase">${loan.picBorrow || 'PEMINJAM'}</span></td>
+                    <td class="p-4"><span class="text-slate-800 text-[10px] font-bold uppercase">${loan.name}</span></td>
+                    <td class="p-4 text-center text-xs font-black uppercase">${loan.qty} ${loan.unit}</td>
+                    <td class="p-4"><span class="text-[9px] font-bold text-slate-400 italic uppercase">${loan.notesBorrow || '-'}</span></td>
+                    <td class="p-4 text-[9px] hidden md:table-cell text-slate-400 uppercase tracking-tighter">${loan.dateBorrow || '-'}</td>
+                    <td class="p-4 text-right">
+                        <button onclick="window.returnItem('${loan.id}')" class="text-emerald-500 hover:scale-110 active:scale-95 transition-all p-2 rounded-full hover:bg-emerald-50" title="Tandai Sudah Kembali">
+                            <i data-lucide="check-circle" class="w-6 h-6"></i>
+                        </button>
+                    </td>
+                `;
+                body.appendChild(row);
+            });
+        }
 
-        function renderValuation() {
-            const sums = { MECHANICAL: 0, ELECTRICAL: 0, PLUMBING: 0 };
-            const stock = {};
-            inventory.forEach(i => {
-                const key = `${i.name}|${i.type}`;
-                if(!stock[key]) stock[key] = { n: i.name, q: 0, p: i.price, c: i.category, u: i.unit };
-                stock[key].q += (i.status === 'MASUK' ? i.qty : -i.qty);
-            });
-            Object.values(stock).forEach(item => { if(item.q > 0) sums[item.c] += (item.q * Number(item.p || 0)); });
-            const grid = document.getElementById('budget-summary-grid');
-            if(grid) {
-                grid.innerHTML = '';
-                ['MECHANICAL', 'ELECTRICAL', 'PLUMBING'].forEach(cat => {
-                    const color = cat === 'MECHANICAL' ? 'orange' : (cat === 'ELECTRICAL' ? 'sky' : 'emerald');
-                    grid.innerHTML += `<div class="premium-card p-6 border-l-[10px] border-${color}-500"><p class="text-[9px] font-black text-slate-400 mb-1 tracking-widest uppercase">ASET ${cat}</p><h4 class="text-xl font-black italic">RP ${sums[cat].toLocaleString('id-ID')}</h4></div>`;
-                });
-            }
-            document.getElementById('grand-total-budget').innerText = `RP ${(sums.MECHANICAL + sums.ELECTRICAL + sums.PLUMBING).toLocaleString('id-ID')}`;
-            const tableBody = document.getElementById('valuation-table-body');
-            if(tableBody) {
-                tableBody.innerHTML = '';
-                Object.values(stock).filter(item => item.q > 0).sort((a,b) => a.c.localeCompare(b.c)).forEach(item => {
-                    const subtotal = item.q * Number(item.p || 0);
-                    const tr = document.createElement('tr');
-                    tr.innerHTML = `<td class="p-4 text-[10px] text-slate-400 uppercase">${item.c}</td><td class="p-4 text-xs font-black uppercase">${item.n}</td><td class="p-4 text-center text-xs uppercase">${item.q} ${item.u}</td><td class="p-4 text-right text-xs font-bold uppercase">RP ${Number(item.p || 0).toLocaleString('id-ID')}</td><td class="p-4 text-right text-xs font-black text-blue-600 uppercase">RP ${subtotal.toLocaleString('id-ID')}</td>`;
-                    tableBody.appendChild(tr);
-                });
-            }
-        }
+        function renderValuation() {
+            const sums = { MECHANICAL: 0, ELECTRICAL: 0, PLUMBING: 0 };
+            const stock = {};
+            inventory.forEach(i => {
+                const key = `${i.name}|${i.type}`;
+                if(!stock[key]) stock[key] = { n: i.name, q: 0, p: i.price, c: i.category, u: i.unit };
+                stock[key].q += (i.status === 'MASUK' ? i.qty : -i.qty);
+            });
+            Object.values(stock).forEach(item => { if(item.q > 0) sums[item.c] += (item.q * Number(item.p || 0)); });
+            const grid = document.getElementById('budget-summary-grid');
+            if(grid) {
+                grid.innerHTML = '';
+                ['MECHANICAL', 'ELECTRICAL', 'PLUMBING'].forEach(cat => {
+                    const color = cat === 'MECHANICAL' ? 'orange' : (cat === 'ELECTRICAL' ? 'sky' : 'emerald');
+                    grid.innerHTML += `<div class="premium-card p-6 border-l-[10px] border-${color}-500"><p class="text-[9px] font-black text-slate-400 mb-1 tracking-widest uppercase">ASET ${cat}</p><h4 class="text-xl font-black italic">RP ${sums[cat].toLocaleString('id-ID')}</h4></div>`;
+                });
+            }
+            document.getElementById('grand-total-budget').innerText = `RP ${(sums.MECHANICAL + sums.ELECTRICAL + sums.PLUMBING).toLocaleString('id-ID')}`;
+            const tableBody = document.getElementById('valuation-table-body');
+            if(tableBody) {
+                tableBody.innerHTML = '';
+                Object.values(stock).filter(item => item.q > 0).sort((a,b) => a.c.localeCompare(b.c)).forEach(item => {
+                    const subtotal = item.q * Number(item.p || 0);
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `<td class="p-4 text-[10px] text-slate-400 uppercase">${item.c}</td><td class="p-4 text-xs font-black uppercase">${item.n}</td><td class="p-4 text-center text-xs uppercase">${item.q} ${item.u}</td><td class="p-4 text-right text-xs font-bold uppercase">RP ${Number(item.p || 0).toLocaleString('id-ID')}</td><td class="p-4 text-right text-xs font-black text-blue-600 uppercase">RP ${subtotal.toLocaleString('id-ID')}</td>`;
+                    tableBody.appendChild(tr);
+                });
+            }
+        }
 
-        function renderCharts() {
-            ['MECHANICAL', 'ELECTRICAL', 'PLUMBING'].forEach(cat => {
-                const canvas = document.getElementById(`chart-${cat}`);
-                if(!canvas) return;
-                const stockByName = {};
-                inventory.forEach(i => {
-                    if(i.category === cat) {
-                        if(!stockByName[i.name]) stockByName[i.name] = 0;
-                        stockByName[i.name] += (i.status === 'MASUK' ? i.qty : -i.qty);
-                    }
-                });
-                const sortedItems = Object.entries(stockByName).filter(e => e[1] > 0).sort((a,b) => b[1] - a[1]).slice(0, 5);
-                const labels = sortedItems.map(e => e[0]); 
-                const dataValues = sortedItems.map(e => e[1]);
-                if(charts[cat]) charts[cat].destroy();
-                charts[cat] = new Chart(canvas, {
-                    type: 'bar',
-                    data: { labels: labels, datasets: [{ data: dataValues, backgroundColor: cat === 'MECHANICAL' ? '#f97316' : (cat === 'ELECTRICAL' ? '#0ea5e9' : '#10b981'), borderRadius: 8 }] },
-                    options: { 
-                        responsive: true, 
-                        maintainAspectRatio: false, 
-                        plugins: { legend: { display: false } }, 
-                        scales: { 
-                            y: { display: false }, 
-                            x: { 
-                                grid: { display: false }, 
-                                ticks: { 
-                                    font: { size: 7, weight: 'bold' },
-                                    callback: function(value) {
-                                        const label = this.getLabelForValue(value);
-                                        return label.length > 8 ? label.substr(0, 8) + '...' : label;
-                                    }
-                                } 
-                            } 
-                        } 
-                    }
-                });
-            });
-        }
+        function renderCharts() {
+            ['MECHANICAL', 'ELECTRICAL', 'PLUMBING'].forEach(cat => {
+                const canvas = document.getElementById(`chart-${cat}`);
+                if(!canvas) return;
+                const stockByName = {};
+                inventory.forEach(i => {
+                    if(i.category === cat) {
+                        if(!stockByName[i.name]) stockByName[i.name] = 0;
+                        stockByName[i.name] += (i.status === 'MASUK' ? i.qty : -i.qty);
+                    }
+                });
+                const sortedItems = Object.entries(stockByName).filter(e => e[1] > 0).sort((a,b) => b[1] - a[1]).slice(0, 5);
+                const labels = sortedItems.map(e => e[0]); 
+                const dataValues = sortedItems.map(e => e[1]);
+                if(charts[cat]) charts[cat].destroy();
+                charts[cat] = new Chart(canvas, {
+                    type: 'bar',
+                    data: { labels: labels, datasets: [{ data: dataValues, backgroundColor: cat === 'MECHANICAL' ? '#f97316' : (cat === 'ELECTRICAL' ? '#0ea5e9' : '#10b981'), borderRadius: 8 }] },
+                    options: { 
+                        responsive: true, 
+                        maintainAspectRatio: false, 
+                        plugins: { legend: { display: false } }, 
+                        scales: { 
+                            y: { display: false }, 
+                            x: { 
+                                grid: { display: false }, 
+                                ticks: { 
+                                    font: { size: 7, weight: 'bold' },
+                                    callback: function(value) {
+                                        const label = this.getLabelForValue(value);
+                                        return label.length > 8 ? label.substr(0, 8) + '...' : label;
+                                    }
+                                } 
+                            } 
+                        } 
+                    }
+                });
+            });
+        }
 
-        function showToast(m, cls = "bg-slate-900") {
-            const t = document.getElementById('toast');
-            if(!t) return; t.innerText = m;
-            t.className = `fixed bottom-10 left-1/2 -translate-x-1/2 text-white px-10 py-5 rounded-2xl text-[10px] font-black tracking-[0.2em] uppercase transition-all duration-300 z-[300] shadow-2xl ${cls}`;
-            t.style.opacity = '1'; setTimeout(() => { t.style.opacity = '0'; }, 3000);
-        }
+        function showToast(m, cls = "bg-slate-900") {
+            const t = document.getElementById('toast');
+            if(!t) return; t.innerText = m;
+            t.className = `fixed bottom-10 left-1/2 -translate-x-1/2 text-white px-10 py-5 rounded-2xl text-[10px] font-black tracking-[0.2em] uppercase transition-all duration-300 z-[300] shadow-2xl ${cls}`;
+            t.style.opacity = '1'; setTimeout(() => { t.style.opacity = '0'; }, 3000);
+        }
 
-        async function init() {
-            if(window.lucide) lucide.createIcons();
-            if(!auth) return;
-            try {
-                const initAuth = async () => {
-                    try {
-                        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) { 
-                            await signInWithCustomToken(auth, __initial_auth_token); 
-                        } else { 
-                            await signInAnonymously(auth); 
-                        }
-                    } catch (error) {
-                        console.warn("Auth mismatch detected, using anonymous sign-in:", error.message);
-                        await signInAnonymously(auth);
-                    }
-                };
-                await initAuth();
-                onAuthStateChanged(auth, (user) => {
-                    if (user && db) {
-                        onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'inventory_logs'), (snap) => {
-                            inventory = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-                            inventory.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
-                            renderAll();
-                        }, (err) => showToast("GANGGUAN SINKRONISASI", "bg-red-600"));
-                    }
-                });
-            } catch (e) { console.error("Firebase Initialization Error:", e); }
-        }
+        async function init() {
+            if(window.lucide) lucide.createIcons();
+            if(!auth) return;
+            try {
+                const initAuth = async () => {
+                    try {
+                        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) { 
+                            await signInWithCustomToken(auth, __initial_auth_token); 
+                        } else { 
+                            await signInAnonymously(auth); 
+                        }
+                    } catch (error) {
+                        console.warn("Auth mismatch detected, using anonymous sign-in:", error.message);
+                        await signInAnonymously(auth);
+                    }
+                };
+                await initAuth();
+                onAuthStateChanged(auth, (user) => {
+                    if (user && db) {
+                        onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'inventory_logs'), (snap) => {
+                            inventory = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                            inventory.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+                            renderAll();
+                        }, (err) => showToast("GANGGUAN SINKRONISASI", "bg-red-600"));
+                    }
+                });
+            } catch (e) { console.error("Firebase Initialization Error:", e); }
+        }
 
-        document.getElementById('inventoryForm').onsubmit = async (e) => {
-            e.preventDefault(); if(!db || !auth.currentUser) { showToast("DATABASE BELUM SIAP", "bg-red-600"); return; }
-            const data = {
-                category: document.getElementById('category').value,
-                name: document.getElementById('itemName').value.toUpperCase().trim(),
-                type: document.getElementById('itemType').value.toUpperCase().trim() || "UMUM",
-                qty: Number(document.getElementById('qty').value) || 1,
-                unit: document.getElementById('unit').value,
-                price: Number(document.getElementById('price').value) || 0,
-                status: 'MASUK', subStatus: 'INPUT',
-                createdAt: Date.now(), timestamp: new Date().toLocaleString('id-ID', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })
-            };
-            await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'inventory_logs'), data);
-            e.target.reset(); showToast("STOK TERCATAT"); window.switchView('dashboard');
-        };
+        document.getElementById('inventoryForm').onsubmit = async (e) => {
+            e.preventDefault(); if(!db || !auth.currentUser) { showToast("DATABASE BELUM SIAP", "bg-red-600"); return; }
+            const data = {
+                category: document.getElementById('category').value,
+                name: document.getElementById('itemName').value.toUpperCase().trim(),
+                type: document.getElementById('itemType').value.toUpperCase().trim() || "UMUM",
+                qty: Number(document.getElementById('qty').value) || 1,
+                unit: document.getElementById('unit').value,
+                price: Number(document.getElementById('price').value) || 0,
+                status: 'MASUK', subStatus: 'INPUT',
+                createdAt: Date.now(), timestamp: new Date().toLocaleString('id-ID', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })
+            };
+            await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'inventory_logs'), data);
+            e.target.reset(); showToast("STOK TERCATAT"); window.switchView('dashboard');
+        };
 
-        document.getElementById('issueFormAction').onsubmit = async (e) => {
-            e.preventDefault(); 
-            if(!db || !auth.currentUser) { showToast("DATABASE BELUM SIAP", "bg-red-600"); return; }
-            
-            const sub = document.getElementById('modalSubStatus').value;
-            const data = {
-                category: document.getElementById('modalCategory').value,
-                name: document.getElementById('modalItemName').value,
-                type: document.getElementById('modalItemType').value,
-                qty: Number(document.getElementById('modalQty').value) || 1,
-                unit: document.getElementById('modalUnit').value,
-                price: Number(document.getElementById('modalPrice').value) || 0,
-                status: 'KELUAR', 
-                subStatus: sub,
-                picBorrow: sub === 'PEMINJAMAN' ? document.getElementById('modalPicBorrow').value.toUpperCase() : null,
-                dateBorrow: sub === 'PEMINJAMAN' ? document.getElementById('modalDateBorrow').value : null,
-                dateReturn: sub === 'PEMINJAMAN' ? document.getElementById('modalDateReturn').value : null,
-                notesBorrow: sub === 'PEMINJAMAN' ? document.getElementById('modalNotesBorrow').value.toUpperCase() : null,
-                picInstall: sub === 'PROYEK' ? document.getElementById('modalPicInstall').value.toUpperCase() : null,
-                notesInstall: sub === 'PROYEK' ? document.getElementById('modalNotesInstall').value.toUpperCase() : (sub === 'PENYESUAIAN' ? 'PENYESUAIAN STOK' : null),
-                createdAt: Date.now(), 
-                timestamp: new Date().toLocaleString('id-ID', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })
-            };
-            
-            try {
-                await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'inventory_logs'), data);
-                window.closeIssueModal(); 
-                showToast("PENGELUARAN TERCATAT"); 
-                window.switchView('dashboard');
-            } catch (err) {
-                console.error("Submit Fail:", err);
-                showToast("GAGAL MENYIMPAN", "bg-red-600");
-            }
-        };
+        document.getElementById('issueFormAction').onsubmit = async (e) => {
+            e.preventDefault(); 
+            if(!db || !auth.currentUser) { showToast("DATABASE BELUM SIAP", "bg-red-600"); return; }
+            
+            const sub = document.getElementById('modalSubStatus').value;
+            const data = {
+                category: document.getElementById('modalCategory').value,
+                name: document.getElementById('modalItemName').value,
+                type: document.getElementById('modalItemType').value,
+                qty: Number(document.getElementById('modalQty').value) || 1,
+                unit: document.getElementById('modalUnit').value,
+                price: Number(document.getElementById('modalPrice').value) || 0,
+                status: 'KELUAR', 
+                subStatus: sub,
+                picBorrow: sub === 'PEMINJAMAN' ? document.getElementById('modalPicBorrow').value.toUpperCase() : null,
+                dateBorrow: sub === 'PEMINJAMAN' ? document.getElementById('modalDateBorrow').value : null,
+                dateReturn: sub === 'PEMINJAMAN' ? document.getElementById('modalDateReturn').value : null,
+                notesBorrow: sub === 'PEMINJAMAN' ? document.getElementById('modalNotesBorrow').value.toUpperCase() : null,
+                picInstall: sub === 'PROYEK' ? document.getElementById('modalPicInstall').value.toUpperCase() : null,
+                notesInstall: sub === 'PROYEK' ? document.getElementById('modalNotesInstall').value.toUpperCase() : (sub === 'PENYESUAIAN' ? 'PENYESUAIAN STOK' : null),
+                createdAt: Date.now(), 
+                timestamp: new Date().toLocaleString('id-ID', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })
+            };
+            
+            try {
+                await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'inventory_logs'), data);
+                window.closeIssueModal(); 
+                showToast("PENGELUARAN TERCATAT"); 
+                window.switchView('dashboard');
+            } catch (err) {
+                console.error("Submit Fail:", err);
+                showToast("GAGAL MENYIMPAN", "bg-red-600");
+            }
+        };
 
-        init();
-    </script>
+        init();
+    </script>
 </body>
 </html>
