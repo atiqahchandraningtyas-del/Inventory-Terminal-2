@@ -6,7 +6,7 @@
     <meta name="theme-color" content="#004a99">
     <title>PT PELINDO PETIKEMAS - WORKSHOP T2</title>
     
-    <!-- External Assets -->
+    <!-- External Libraries -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -40,26 +40,35 @@
     </style>
 
     <script>
-        /** UI Navigation Global Logic **/
+        /** UI Global Functions - Tersedia segera saat load untuk GitHub Pages **/
         window.toggleMenu = function(show) {
-            const m = document.getElementById('sidebar-menu');
-            const o = document.getElementById('sidebar-overlay');
-            if (!m || !o) return;
-            if (show) { m.classList.add('open'); o.classList.add('active'); } 
-            else { m.classList.remove('open'); o.classList.remove('active'); }
+            const menu = document.getElementById('sidebar-menu');
+            const overlay = document.getElementById('sidebar-overlay');
+            if (!menu || !overlay) return;
+            if (show) {
+                menu.classList.add('open');
+                overlay.classList.add('active');
+            } else {
+                menu.classList.remove('open');
+                overlay.classList.remove('active');
+            }
         };
 
         window.switchView = function(viewId) {
             const sections = document.querySelectorAll('.view-section');
-            const btns = document.querySelectorAll('.nav-btn-sidebar');
+            const buttons = document.querySelectorAll('.nav-btn-sidebar');
             sections.forEach(s => s.classList.remove('active-view'));
-            btns.forEach(b => b.classList.remove('active'));
+            buttons.forEach(b => b.classList.remove('active'));
+
             const target = document.getElementById('view-' + viewId);
             const btn = document.getElementById('nav-' + viewId);
             if (target) target.classList.add('active-view');
             if (btn) btn.classList.add('active');
+
             window.toggleMenu(false);
             window.scrollTo({ top: 0, behavior: 'smooth' });
+            
+            // Trigger render jika data sudah ada
             if (window.renderAll) window.renderAll();
         };
     </script>
@@ -87,7 +96,7 @@
         </nav>
 
         <div class="p-8 border-t border-slate-100 text-center">
-            <p class="text-[9px] font-bold text-slate-400 uppercase">PT PELINDO PETIKEMAS © 2026</p>
+            <p class="text-[9px] font-bold text-slate-400">PT PELINDO PETIKEMAS © 2026</p>
         </div>
     </aside>
 
@@ -95,11 +104,11 @@
         <div class="header-gradient text-white">
             <div class="max-w-7xl mx-auto px-4 md:px-8 py-4 flex items-center justify-between">
                 <div class="flex items-center gap-4">
-                    <button onclick="window.toggleMenu(true)" class="p-3 bg-white/10 hover:bg-white/20 rounded-2xl transition-all flex items-center justify-center"><i data-lucide="menu" class="w-6 h-6"></i></button>
+                    <button onclick="window.toggleMenu(true)" class="p-3 bg-white/10 hover:bg-white/20 rounded-2xl transition-all"><i data-lucide="menu" class="w-6 h-6"></i></button>
                     <div class="hidden md:block border-l border-white/20 pl-6"><h1 class="text-sm font-black tracking-tight leading-none uppercase">PT PELINDO PETIKEMAS NEW MAKASSAR</h1><p class="text-[9px] font-bold opacity-60 tracking-[0.2em] mt-1.5 uppercase">T2 Workshop Management</p></div>
                 </div>
                 <div class="flex gap-2">
-                    <button onclick="window.exportData('xlsx')" class="bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2.5 rounded-xl font-bold text-[10px] transition-all flex items-center gap-2 shadow-lg shadow-emerald-500/20"><i data-lucide="download" class="w-4 h-4"></i> EXCEL</button>
+                    <button onclick="window.exportData('xlsx')" class="bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2.5 rounded-xl font-bold text-[10px] transition-all flex items-center gap-2 shadow-lg"><i data-lucide="download" class="w-4 h-4"></i> EXCEL</button>
                 </div>
             </div>
         </div>
@@ -107,7 +116,7 @@
 
     <main class="max-w-7xl mx-auto px-4 md:px-8 py-8">
         
-        <!-- DASHBOARD -->
+        <!-- DASHBOARD VIEW -->
         <div id="view-dashboard" class="view-section active-view">
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10 text-center md:text-left">
                 <div class="premium-card p-6 border-b-4 border-blue-600 stat-card-gradient">
@@ -135,7 +144,7 @@
                 </div>
                 <div class="premium-card p-8 flex flex-col">
                     <h3 class="font-black text-xs tracking-widest mb-6 uppercase">Aktivitas Terbaru</h3>
-                    <div id="recent-logs-container" class="space-y-4 flex-1 max-h-[450px] overflow-y-auto pr-2"></div>
+                    <div id="recent-logs-container" class="space-y-4 flex-1 max-h-[450px] overflow-y-auto pr-2 text-[10px]"></div>
                 </div>
             </div>
 
@@ -154,7 +163,7 @@
             <div id="full-log-container" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
         </div>
 
-        <!-- VIEW: STOCK -->
+        <!-- STOK -->
         <div id="view-stock" class="view-section">
             <h2 class="text-xs font-black tracking-[0.4em] text-slate-400 uppercase mb-8">Stok Aktual Workshop</h2>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -173,7 +182,7 @@
             </div>
         </div>
 
-        <!-- VIEW: INPUT -->
+        <!-- INPUT -->
         <div id="view-input" class="view-section">
             <div class="max-w-3xl mx-auto">
                 <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4 text-center md:text-left">
@@ -194,13 +203,13 @@
                         <div class="space-y-2"><label class="text-[10px] font-black text-slate-400 ml-1 uppercase">Kategori</label><select id="category" class="form-input-pld"><option value="ELECTRICAL">Electrical</option><option value="MECHANICAL">Mechanical</option><option value="PLUMBING">Plumbing</option></select></div>
                         <div class="space-y-2"><label class="text-[10px] font-black text-slate-400 ml-1 uppercase">Satuan</label><select id="unit" class="form-input-pld"><option value="PCS">PCS</option><option value="SET">SET</option><option value="MTR">MTR</option><option value="ROL">ROL</option><option value="BTG">BTG</option><option value="PACK">PACK</option></select></div>
                     </div>
-                    <div class="space-y-2"><label class="text-[10px] font-black text-slate-400 ml-1 uppercase">Nama Material</label><input type="text" id="itemName" class="form-input-pld" required placeholder="Nama Lengkap Material..."></div>
-                    <div class="space-y-2"><label class="text-[10px] font-black text-slate-400 ml-1 uppercase">Merk / Tipe Spesifikasi</label><input type="text" id="itemType" class="form-input-pld" placeholder="Contoh: Tekiro / 10 Inch..."></div>
+                    <div class="space-y-2"><label class="text-[10px] font-black text-slate-400 ml-1 uppercase">Nama Material</label><input type="text" id="itemName" class="form-input-pld" required placeholder="NAMA LENGKAP MATERIAL..."></div>
+                    <div class="space-y-2"><label class="text-[10px] font-black text-slate-400 ml-1 uppercase">Merk / Tipe Spesifikasi</label><input type="text" id="itemType" class="form-input-pld" placeholder="CONTOH: TEKIRO / 10 INCH..."></div>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div class="space-y-2"><label class="text-[10px] font-black text-slate-400 ml-1 uppercase">Qty</label><input type="number" id="qty" class="form-input-pld" required min="1" value="1"></div>
+                        <div class="space-y-2"><label class="text-[10px] font-black text-slate-400 ml-1 uppercase">Qty Awal</label><input type="number" id="qty" class="form-input-pld" required min="1" value="1"></div>
                         <div class="space-y-2"><label class="text-[10px] font-black text-slate-400 ml-1 uppercase">Harga Satuan (Rp)</label><input type="number" id="price" class="form-input-pld" value="0"></div>
                     </div>
-                    <button type="submit" class="w-full bg-[#004a99] text-white py-5 rounded-2xl font-black text-xs uppercase shadow-xl hover:opacity-90 transition-all">Simpan Material</button>
+                    <button type="submit" class="w-full bg-[#004a99] text-white py-5 rounded-2xl font-black text-xs uppercase shadow-xl hover:opacity-90 transition-all">Simpan Material Ke database</button>
                 </form>
             </div>
         </div>
@@ -211,14 +220,14 @@
             
             <div class="bg-gradient-to-br from-[#004a99] to-[#00aeef] p-12 rounded-[2rem] text-white flex flex-col items-center justify-center mb-8 shadow-2xl relative overflow-hidden text-center">
                 <i data-lucide="trending-up" class="absolute -right-10 -bottom-10 w-64 h-64 opacity-10"></i>
-                <p class="text-[10px] font-black opacity-70 tracking-[0.6em] mb-4 uppercase">Total Nilai Estimasi Stok</p>
-                <h3 id="grand-total-budget" class="text-5xl font-black italic tracking-tighter">RP 0</h3>
+                <p class="text-[10px] font-black opacity-70 tracking-[0.6em] mb-4 uppercase">Total Estimasi Nilai Stok</p>
+                <h3 id="grand-total-budget" class="text-4xl md:text-6xl font-black italic tracking-tighter">RP 0</h3>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-                <div class="premium-card p-6 border-l-8 border-orange-500 stat-card-gradient"><p class="text-[9px] font-black text-slate-400 mb-1 uppercase tracking-widest text-center md:text-left">Total Mechanical</p><h4 id="val-cat-mechanical" class="text-lg font-black text-slate-800 italic text-center md:text-left">RP 0</h4></div>
-                <div class="premium-card p-6 border-l-8 border-sky-500 stat-card-gradient"><p class="text-[9px] font-black text-slate-400 mb-1 uppercase tracking-widest text-center md:text-left">Total Electrical</p><h4 id="val-cat-electrical" class="text-lg font-black text-slate-800 italic text-center md:text-left">RP 0</h4></div>
-                <div class="premium-card p-6 border-l-8 border-emerald-500 stat-card-gradient"><p class="text-[9px] font-black text-slate-400 mb-1 uppercase tracking-widest text-center md:text-left">Total Plumbing</p><h4 id="val-cat-plumbing" class="text-lg font-black text-slate-800 italic text-center md:text-left">RP 0</h4></div>
+                <div class="premium-card p-6 border-l-8 border-orange-500 stat-card-gradient"><p class="text-[9px] font-black text-slate-400 mb-1 uppercase tracking-widest">Total Mechanical</p><h4 id="val-cat-mechanical" class="text-lg font-black text-slate-800 italic">RP 0</h4></div>
+                <div class="premium-card p-6 border-l-8 border-sky-500 stat-card-gradient"><p class="text-[9px] font-black text-slate-400 mb-1 uppercase tracking-widest">Total Electrical</p><h4 id="val-cat-electrical" class="text-lg font-black text-slate-800 italic">RP 0</h4></div>
+                <div class="premium-card p-6 border-l-8 border-emerald-500 stat-card-gradient"><p class="text-[9px] font-black text-slate-400 mb-1 uppercase tracking-widest">Total Plumbing</p><h4 id="val-cat-plumbing" class="text-lg font-black text-slate-800 italic">RP 0</h4></div>
             </div>
 
             <div class="premium-card overflow-hidden">
@@ -233,7 +242,7 @@
             </div>
         </div>
 
-        <!-- LOAN -->
+        <!-- PEMINJAMAN -->
         <div id="view-loan" class="view-section">
             <h2 class="text-xs font-black tracking-[0.4em] text-slate-400 uppercase mb-8 text-center md:text-left">Peminjaman Berjalan</h2>
             <div class="premium-card overflow-hidden">
@@ -249,7 +258,7 @@
             </div>
         </div>
 
-        <!-- BARANG KELUAR -->
+        <!-- ISSUE (BARANG KELUAR) -->
         <div id="view-issue" class="view-section">
             <h2 class="text-xs font-black tracking-[0.4em] text-slate-400 uppercase mb-8 text-center md:text-left">Pencatatan Barang Keluar</h2>
             <div class="relative w-full max-w-md mb-10">
@@ -266,10 +275,10 @@
             <div class="p-10 text-center">
                 <div id="confirmIconContainer" class="w-20 h-20 bg-slate-100 rounded-3xl flex items-center justify-center mx-auto mb-6"><i id="confirmIcon" data-lucide="alert-circle" class="w-10 h-10 text-slate-600"></i></div>
                 <h3 id="confirmTitle" class="text-lg font-black uppercase mb-2 text-slate-800">Konfirmasi</h3>
-                <p id="confirmMessage" class="text-xs text-slate-500 font-bold mb-8 leading-relaxed">Apakah Anda yakin ingin melanjutkan?</p>
+                <p id="confirmMessage" class="text-xs text-slate-500 font-bold mb-8 leading-relaxed">Apakah Anda yakin?</p>
                 <div class="grid grid-cols-2 gap-4">
                     <button onclick="window.closeConfirmModal()" class="py-4 bg-slate-100 text-slate-600 rounded-2xl font-black text-[10px] uppercase hover:bg-slate-200 transition-all">Batal</button>
-                    <button id="confirmActionButton" class="py-4 bg-[#004a99] text-white rounded-2xl font-black text-[10px] uppercase shadow-xl hover:opacity-90 transition-all">Ya, Lanjutkan</button>
+                    <button id="confirmActionButton" class="py-4 bg-[#004a99] text-white rounded-2xl font-black text-[10px] uppercase shadow-xl hover:opacity-90 transition-all">Ya, Proses</button>
                 </div>
             </div>
         </div>
@@ -299,18 +308,22 @@
                     <div class="space-y-2"><label class="text-[10px] font-black text-blue-400 ml-1 uppercase">PIC Teknisi</label><input type="text" id="modalPicInstall" class="form-input-pld"></div>
                     <div class="space-y-2"><label class="text-[10px] font-black text-blue-400 ml-1 uppercase">Unit / Lokasi</label><textarea id="modalNotesInstall" class="form-input-pld h-24 resize-none" placeholder="MISAL: RTG 01 / CRANE..."></textarea></div>
                 </div>
-                <button type="submit" class="w-full bg-[#004a99] text-white py-5 rounded-2xl font-black uppercase shadow-xl hover:opacity-90 transition-all">Konfirmasi Pengeluaran</button>
+                <button type="submit" class="w-full bg-[#004a99] text-white py-5 rounded-2xl font-black uppercase shadow-xl hover:opacity-90">Konfirmasi Pengeluaran</button>
             </form>
         </div>
     </div>
 
-    <!-- Script Module -->
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed bottom-10 left-1/2 -translate-x-1/2 bg-slate-900 text-white px-10 py-5 rounded-[2rem] text-[10px] font-black uppercase opacity-0 transition-all duration-500 z-[300] shadow-2xl pointer-events-none border border-white/10 flex items-center gap-4">
+        <i data-lucide="check-circle" class="w-5 h-5 text-emerald-400"></i><span>BERHASIL</span>
+    </div>
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, deleteDoc, doc, updateDoc, onSnapshot, getDocs, writeBatch } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'pld-mnp-v2';
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'pld-inventory-v2-main';
         const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : { apiKey: "", authDomain: `${appId}.firebaseapp.com`, projectId: appId };
         
         let db, auth, user;
@@ -347,27 +360,19 @@
             return null;
         };
 
-        const detectCat = (name, sheetName = "") => {
-            const s = (name + " " + sheetName).toUpperCase();
-            if (s.includes("ELEC")) return "ELECTRICAL";
-            if (s.includes("PLUM")) return "PLUMBING";
-            if (s.includes("MECH")) return "MECHANICAL";
-            return "MECHANICAL";
-        };
-
         /** Global UI Refresh (GitHub/Realtime Fix) **/
         const refreshLucide = () => { if (window.lucide) lucide.createIcons(); };
 
         /** Main Actions **/
         window.deleteLog = (id) => {
-            window.openConfirmModal("Hapus Log", "Hapus riwayat transaksi ini?", "trash-2", "bg-red-50 text-red-600", async () => {
+            window.openConfirmModal("Hapus Log", "Log ini akan dihapus permanen.", "trash-2", "bg-red-50 text-red-600", async () => {
                 await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'inventory_logs', id));
                 window.showToast("DATA DIHAPUS");
             });
         };
 
         window.deleteMaterial = (name, type) => {
-            window.openConfirmModal("Hapus Stok", `Hapus seluruh stok ${name}?`, "trash-2", "bg-red-50 text-red-600", async () => {
+            window.openConfirmModal("Hapus Material", `Hapus seluruh histori stok ${name}?`, "trash-2", "bg-red-50 text-red-600", async () => {
                 const toDelete = inventory.filter(i => i.name === name && i.type === type);
                 const batch = writeBatch(db);
                 toDelete.forEach(item => batch.delete(doc(db, 'artifacts', appId, 'public', 'data', 'inventory_logs', item.id)));
@@ -379,8 +384,9 @@
         window.returnItem = (id) => {
             const it = inventory.find(i => i.id === id);
             if (!it) return;
-            window.openConfirmModal("Kembalikan Stok", `Kembalikan material ${it.name}?`, "check-circle", "bg-emerald-50 text-emerald-600", async () => {
-                const logDetail = `PENGEMBALIAN DARI ${it.picBorrow} PADA ${new Date().toLocaleString('id-ID', { day: '2-digit', month: 'short' })}.`;
+            window.openConfirmModal("Kembalikan Stok", `Konfirmasi pengembalian material ${it.name}?`, "check-circle", "bg-emerald-50 text-emerald-600", async () => {
+                const now = new Date().toLocaleString('id-ID', { day: '2-digit', month: 'short' });
+                const logDetail = `PENGEMBALIAN DARI ${it.picBorrow} PADA ${now}. CATATAN: ${it.notesBorrow || '-'}`;
                 await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'inventory_logs'), { ...it, status: 'MASUK', subStatus: 'PENGEMBALIAN', notesInstall: logDetail, createdAt: Date.now(), timestamp: new Date().toLocaleString('id-ID', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }) });
                 await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'inventory_logs', id), { subStatus: 'SELESAI' });
                 window.showToast("DITERIMA");
@@ -405,7 +411,6 @@
             });
         };
 
-        /** Rendering Engine **/
         window.renderAll = () => {
             const summary = {};
             inventory.forEach(i => {
@@ -416,7 +421,6 @@
                 summary[k].q += (i.status === 'MASUK' ? i.qty : -i.qty);
             });
             const stock = Object.values(summary).filter(s => s.q !== 0);
-            
             const valCats = { MECHANICAL: 0, ELECTRICAL: 0, PLUMBING: 0 };
             stock.forEach(it => { if (it.q > 0) valCats[it.c] += (it.q * it.p); });
             const grandTotal = Object.values(valCats).reduce((a, b) => a + b, 0);
@@ -444,7 +448,7 @@
                     let d = i.notesInstall || i.notesBorrow || '-';
                     if (i.subStatus === 'PROYEK') d = `PIC: ${i.picInstall} | LOKASI: ${i.notesInstall}`;
                     if (i.subStatus === 'PEMINJAMAN') d = `PIC: ${i.picBorrow} | EST: ${i.dateReturn || '-'}`;
-                    const card = `<div class="premium-card p-5 border-l-8 ${i.status === 'MASUK' ? 'border-emerald-500' : 'border-red-500'} bg-white"><div class="flex justify-between items-start"><div class="flex-1 pr-4"><div class="flex items-center gap-2 mb-1"><span class="px-2 py-0.5 rounded-md bg-slate-100 text-[8px] font-black">${i.subStatus || 'LOG'}</span><h4 class="text-[10px] font-black truncate">${i.name}</h4></div><p class="text-[9px] font-bold text-slate-400 mb-2">${i.qty} ${i.unit} • ${i.timestamp}</p><div class="bg-slate-50 p-2 rounded-xl border italic text-[9px] text-slate-600 font-bold leading-relaxed">${d}</div></div><button onclick="window.deleteLog('${i.id}')" class="p-2 text-slate-200 hover:text-red-500 transition-all"><i data-lucide="trash-2" class="w-4 h-4"></i></button></div></div>`;
+                    const card = `<div class="premium-card p-5 border-l-8 ${i.status === 'MASUK' ? 'border-emerald-500' : 'border-red-500'} bg-white"><div class="flex justify-between items-start"><div class="flex-1 pr-4"><div class="flex items-center gap-2 mb-1"><span class="px-2 py-0.5 rounded-md bg-slate-100 text-[8px] font-black">${i.subStatus || 'LOG'}</span><h4 class="text-[10px] font-black truncate">${i.name}</h4></div><p class="text-[9px] font-bold text-slate-400 mb-2 uppercase">${i.qty} ${i.unit} • ${i.timestamp}</p><div class="bg-slate-50 p-2 rounded-xl border italic text-[9px] text-slate-600 font-bold leading-relaxed">${d}</div></div><button onclick="window.deleteLog('${i.id}')" class="p-2 text-slate-200 hover:text-red-500 transition-all"><i data-lucide="trash-2" class="w-4 h-4"></i></button></div></div>`;
                     if (idx < 10) rec.innerHTML += card;
                     if (!searchQuery || i.name.includes(searchQuery.toUpperCase())) full.innerHTML += card;
                 });
@@ -485,7 +489,7 @@
             if (vBody) {
                 vBody.innerHTML = '';
                 stock.filter(s => s.q > 0).forEach(it => { 
-                    vBody.innerHTML += `<tr class="hover:bg-slate-50 transition-all uppercase"><td class="p-6 text-[10px] text-slate-400 font-bold">${it.c}</td><td class="p-6 text-[10px] font-black">${it.n}</td><td class="p-6 text-[9px] font-bold text-slate-400">${it.t}</td><td class="p-6 text-center text-xs font-black">${it.q}</td><td class="p-6 text-right text-xs font-bold text-slate-400">Rp ${it.p.toLocaleString('id-ID')}</td><td class="p-6 text-right text-xs font-black text-blue-600">Rp ${(it.q * it.p).toLocaleString('id-ID')}</td></tr>`; 
+                    vBody.innerHTML += `<tr class="hover:bg-slate-50 transition-all uppercase"><td class="p-6 text-[10px] text-slate-400 font-bold">${it.c}</td><td class="p-6 text-[10px] font-black">${it.n}</td><td class="p-6 text-[9px] font-bold text-slate-400">${it.t}</td><td class="p-6 text-center text-xs font-black">${it.qty || it.q}</td><td class="p-6 text-right text-xs font-bold text-slate-400">Rp ${it.p.toLocaleString('id-ID')}</td><td class="p-6 text-right text-xs font-black text-blue-600">Rp ${(it.q * it.p).toLocaleString('id-ID')}</td></tr>`; 
                 });
             }
             refreshLucide();
@@ -514,9 +518,17 @@
                         const volK = findColKey(row, ['VOL', 'Qty', 'Quantity']);
                         if (row[nameK] && cleanNum(row[volK]) > 0) {
                             let cat = detectCat(row[nameK], sn);
-                            const m = String(row[findColKey(row, ['Merk'])] || "").trim();
-                            const t = String(row[findColKey(row, ['Tipe'])] || "").trim();
-                            await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'inventory_logs'), { name: String(row[nameK]).toUpperCase().trim(), category: cat, type: `${m} / ${t}`.replace(/^ \/ | \/ $/, '').toUpperCase(), qty: cleanNum(row[volK]), unit: String(row[findColKey(row, ['SAT', 'Unit'])] || "PCS").toUpperCase(), price: cleanNum(row[findColKey(row, ['HARGA', 'PRICE'])]), status: 'MASUK', subStatus: 'IMPOR', createdAt: Date.now(), timestamp: new Date().toLocaleString('id-ID', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }) });
+                            const merk = String(row[findColKey(row, ['Merk', 'Brand'])] || "").trim();
+                            const tipe = String(row[findColKey(row, ['Tipe', 'Type'])] || "").trim();
+                            const combinedType = (merk && tipe) ? `${merk} / ${tipe}` : (merk || tipe || "-");
+
+                            await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'inventory_logs'), { 
+                                name: String(row[nameK]).toUpperCase().trim(), 
+                                category: cat, type: combinedType.toUpperCase(), 
+                                qty: cleanNum(row[volK]), unit: String(row[findColKey(row, ['SAT', 'Unit'])] || "PCS").toUpperCase(), 
+                                price: cleanNum(row[findColKey(row, ['HARGA', 'PRICE'])]), status: 'MASUK', subStatus: 'IMPOR', createdAt: Date.now(), 
+                                timestamp: new Date().toLocaleString('id-ID', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }) 
+                            });
                             count++;
                         }
                     }
@@ -543,13 +555,22 @@
                     for (const row of rows) {
                         const textK = findColKey(row, ['Short Text', 'Description', 'Material Description']);
                         const qtyK = findColKey(row, ['Quantity requested', 'Quantity']);
-                        const priceK = findColKey(row, ['Valuation Price', 'Price']);
+                        const prPriceK = findColKey(row, ['Valuation Price', 'Price']);
                         if (row[textK] && cleanNum(row[qtyK]) > 0) {
                             const p = String(row[textK]).split(';');
+                            // SAP: MERK;NAMA;TIPE
                             const merk = (p[0] || "").trim();
                             const nama = (p[1] || p[0] || "TANPA NAMA").trim();
                             const tipe = (p[2] || "").trim();
-                            await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'inventory_logs'), { name: nama.toUpperCase(), category: detectCat(row[textK]), type: `${merk} / ${tipe}`.replace(/^ \/ | \/ $/, '').toUpperCase(), qty: cleanNum(row[qtyK]), unit: String(row[findColKey(row, ['Unit'])] || "PCS").replace("EA", "PCS"), price: cleanNum(row[priceK]), status: 'MASUK', subStatus: 'IMPOR SAP', notesInstall: `SAP PR: ${row[findColKey(row, ['Purchase Requisition'])] || '-'}`, createdAt: Date.now(), timestamp: new Date().toLocaleString('id-ID', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }) });
+                            const combinedType = (merk && tipe) ? `${merk} / ${tipe}` : (merk || tipe || "-");
+
+                            await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'inventory_logs'), { 
+                                name: nama.toUpperCase(), category: detectCat(row[textK]), type: combinedType.toUpperCase(), 
+                                qty: cleanNum(row[qtyK]), unit: String(row[findColKey(row, ['Unit'])] || "PCS").replace("EA", "PCS"), 
+                                price: cleanNum(row[prPriceK]), status: 'MASUK', subStatus: 'IMPOR SAP', 
+                                notesInstall: `SAP PR: ${row[findColKey(row, ['Purchase Requisition'])] || '-'}`, 
+                                createdAt: Date.now(), timestamp: new Date().toLocaleString('id-ID', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }) 
+                            });
                             count++;
                         }
                     }
@@ -558,7 +579,7 @@
             }; reader.readAsArrayBuffer(f);
         };
 
-        /** Event Handlers **/
+        /** Handlers **/
         window.handleSearch = (q) => { searchQuery = q; window.renderAll(); };
         window.handleIssueSearch = (q) => { issueSearchQuery = q; window.renderAll(); };
         window.openIssueModal = (it) => { 
@@ -574,9 +595,19 @@
             refreshLucide();
         };
         window.closeIssueModal = () => document.getElementById('issueModal').classList.add('hidden');
-        window.toggleModalSubPanels = () => { const v = document.getElementById('modalSubStatus').value; document.getElementById('modalPanelPeminjaman').classList.toggle('hidden', v !== 'PEMINJAMAN'); document.getElementById('modalPanelInstalasi').classList.toggle('hidden', v !== 'PROYEK'); };
+        window.toggleModalSubPanels = () => { 
+            const v = document.getElementById('modalSubStatus').value; 
+            document.getElementById('modalPanelPeminjaman').classList.toggle('hidden', v !== 'PEMINJAMAN'); 
+            document.getElementById('modalPanelInstalasi').classList.toggle('hidden', v !== 'PROYEK'); 
+        };
 
-        window.clearAllData = () => { window.openConfirmModal("RESET DATABASE", "Hapus semua data riwayat dan stok?", "alert-triangle", "bg-red-50 text-red-600", async () => { const s = await getDocs(collection(db, 'artifacts', appId, 'public', 'data', 'inventory_logs')); const b = writeBatch(db); s.docs.forEach(d => b.delete(d.ref)); await b.commit(); window.showToast("DATABASE BERSIH", true); }); };
+        window.clearAllData = () => { 
+            window.openConfirmModal("RESET DATABASE", "Hapus semua data riwayat dan stok?", "alert-triangle", "bg-red-50 text-red-600", async () => { 
+                const s = await getDocs(collection(db, 'artifacts', appId, 'public', 'data', 'inventory_logs')); 
+                const b = writeBatch(db); s.docs.forEach(d => b.delete(d.ref)); 
+                await b.commit(); window.showToast("DATABASE BERSIH", true); 
+            }); 
+        };
 
         document.getElementById('inventoryForm').onsubmit = async (e) => {
             e.preventDefault();
