@@ -4,6 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#004a99">
+    
+    <!-- PWA Meta Tags -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="PLD Workshop">
+    <link rel="apple-touch-icon" href="logo pelindo.jpg">
+    
+    <!-- Link ke Manifest JSON -->
+    <link rel="manifest" href="manifest.json">
+    
     <title>PT PELINDO PETIKEMAS - WORKSHOP T2</title>
     
     <!-- Libraries dari CDN -->
@@ -151,7 +161,8 @@
     <script>
         // --- GLOBAL UI & AUTH HELPERS ---
         window.authReady = false; 
-        window.stockFilterMode = 'all'; // Mode filter untuk stok barang
+        window.stockFilterMode = 'all';
+        window.historyDateFilter = ''; // Filter tanggal riwayat
 
         window.showToast = (m, e = false) => {
             const t = document.createElement('div');
@@ -175,7 +186,7 @@
         };
 
         window.switchView = function(viewId, filter = 'all') {
-            window.stockFilterMode = filter; // Set filter mode
+            window.stockFilterMode = filter;
             
             const sections = document.querySelectorAll('.view-section');
             const buttons = document.querySelectorAll('.nav-btn-sidebar');
@@ -226,6 +237,15 @@
                 default: return { icon: 'settings', color: 'orange', border: 'border-orange-500', bg: 'bg-orange-100', text: 'text-orange-700' };
             }
         };
+
+        // --- REGISTER SERVICE WORKER FOR PWA ---
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js')
+                .then(reg => console.log('Service Worker terdaftar'))
+                .catch(err => console.log('Gagal mendaftarkan Service Worker', err));
+            });
+        }
     </script>
 </head>
 <body class="antialiased">
@@ -257,7 +277,8 @@
         <nav class="flex-1 p-4 space-y-1 overflow-y-auto mt-4">
             <button onclick="window.switchView('dashboard')" id="nav-dashboard" class="nav-btn-sidebar active"><i data-lucide="layout-grid"></i><span>Dashboard</span></button>
             <button onclick="window.switchView('stock')" id="nav-stock" class="nav-btn-sidebar"><i data-lucide="box"></i><span>Stok Material</span></button>
-            <button onclick="window.switchView('loan')" id="nav-loan" class="nav-btn-sidebar"><i data-lucide="repeat"></i><span>Peminjaman</span></button>
+            <button onclick="window.switchView('loan')" id="nav-loan" class="nav-btn-sidebar"><i data-lucide="repeat"></i><span>Peminjaman Aktif</span></button>
+            <button onclick="window.switchView('history')" id="nav-history" class="nav-btn-sidebar"><i data-lucide="history"></i><span>Riwayat Transaksi</span></button>
             <div class="h-px bg-slate-100 my-4"></div>
             <button onclick="window.switchView('input')" id="nav-input" class="nav-btn-sidebar"><i data-lucide="file-plus"></i><span>Input Barang</span></button>
             <button onclick="window.switchView('issue')" id="nav-issue" class="nav-btn-sidebar"><i data-lucide="file-minus"></i><span>Barang Keluar</span></button>
@@ -301,7 +322,6 @@
         <!-- VIEW: DASHBOARD -->
         <div id="view-dashboard" class="view-section active-view">
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-                <!-- Clickable Cards -->
                 <div onclick="window.switchView('stock')" class="premium-card p-6 border-l-4 border-blue-600 cursor-pointer hover:bg-blue-50/30 transition-all group">
                     <div class="flex justify-between items-start mb-2">
                         <p class="text-[9px] font-black text-slate-400">Total Material</p>
@@ -345,17 +365,6 @@
                     <div id="recent-logs-container" class="space-y-4 max-h-[250px] overflow-y-auto pr-2"></div>
                 </div>
             </div>
-
-            <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
-                <h3 class="text-xs font-black text-slate-800 uppercase tracking-widest">Riwayat Transaksi</h3>
-                <div class="flex gap-2 w-full md:w-auto">
-                    <input type="text" id="logSearch" onkeyup="window.handleSearch(this.value)" placeholder="Cari Log..." class="flex-1 md:w-64 bg-white border border-slate-200 rounded-xl px-4 py-2 text-xs font-bold focus:border-blue-500 outline-none uppercase">
-                    <button onclick="window.clearAllLogs()" class="p-2 text-red-500 bg-white border border-red-100 rounded-xl hover:bg-red-50" title="Reset Log Transaksi Saja">
-                        <i data-lucide="history" class="w-5 h-5"></i>
-                    </button>
-                </div>
-            </div>
-            <div id="full-log-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
         </div>
 
         <!-- VIEW: STOK -->
@@ -370,7 +379,7 @@
             </div>
 
             <div class="space-y-12">
-                <!-- Mechanical Section -->
+                <!-- Stock Lists for MECH, ELEC, PLUM -->
                 <div>
                     <div class="flex items-center justify-center gap-3 mb-6 border-b border-slate-100 pb-2">
                         <i data-lucide="settings" class="text-orange-500 w-4 h-4"></i>
@@ -379,7 +388,6 @@
                     </div>
                     <div id="stock-list-MECHANICAL" class="flex flex-wrap justify-center gap-3"></div>
                 </div>
-                <!-- Electrical Section -->
                 <div>
                     <div class="flex items-center justify-center gap-3 mb-6 border-b border-slate-100 pb-2">
                         <i data-lucide="zap" class="text-sky-500 w-4 h-4"></i>
@@ -388,7 +396,6 @@
                     </div>
                     <div id="stock-list-ELECTRICAL" class="flex flex-wrap justify-center gap-3"></div>
                 </div>
-                <!-- Plumbing Section -->
                 <div>
                     <div class="flex items-center justify-center gap-3 mb-6 border-b border-slate-100 pb-2">
                         <i data-lucide="droplets" class="text-emerald-500 w-4 h-4"></i>
@@ -396,6 +403,51 @@
                         <span class="text-[10px] font-black bg-emerald-50 text-emerald-600 px-2 py-1 rounded-lg" id="badge-count-PLUMBING">0</span>
                     </div>
                     <div id="stock-list-PLUMBING" class="flex flex-wrap justify-center gap-3"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- VIEW: HISTORY (Menu Baru) -->
+        <div id="view-history" class="view-section">
+            <h2 class="text-xs font-black text-slate-400 uppercase mb-8 tracking-widest text-center">Riwayat Transaksi Barang</h2>
+            
+            <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+                <div class="flex flex-wrap items-center gap-3 w-full md:w-auto">
+                    <div class="relative w-full md:w-64">
+                        <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"><i data-lucide="search" class="w-3.5 h-3.5"></i></span>
+                        <input type="text" id="logSearchFull" onkeyup="window.handleSearch(this.value)" placeholder="CARI MATERIAL..." class="w-full bg-white border border-slate-200 rounded-xl pl-10 pr-4 py-2 text-[10px] font-bold focus:border-blue-500 outline-none uppercase shadow-sm">
+                    </div>
+                    <div class="relative w-full md:w-48">
+                        <input type="date" id="historyDateInput" onchange="window.handleDateFilter(this.value)" class="w-full bg-white border border-slate-200 rounded-xl px-4 py-2 text-[10px] font-bold focus:border-blue-500 outline-none uppercase shadow-sm">
+                    </div>
+                    <button onclick="window.resetHistoryFilter()" class="p-2.5 bg-white text-slate-400 border border-slate-200 rounded-xl hover:text-red-500 shadow-sm transition-colors" title="Reset Filter">
+                        <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+                    </button>
+                </div>
+                <button onclick="window.clearAllLogs()" class="p-2.5 text-red-500 bg-white border border-red-100 rounded-xl hover:bg-red-50 shadow-sm transition-colors" title="Hapus Semua Riwayat">
+                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                </button>
+            </div>
+
+            <div id="full-log-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+        </div>
+
+        <!-- VIEW: LOAN -->
+        <div id="view-loan" class="view-section">
+            <h2 class="text-xs font-black text-slate-400 uppercase mb-8 tracking-widest text-center">Daftar Peminjaman Aktif</h2>
+            <div class="premium-card overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs">
+                        <thead class="bg-slate-50 font-black border-b text-slate-500 uppercase">
+                            <tr>
+                                <th class="p-6">Peminjam / Catatan</th>
+                                <th class="p-6">Material</th>
+                                <th class="p-6 text-center">Jumlah</th>
+                                <th class="p-6 text-right">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="loan-table-body" class="divide-y font-bold text-slate-700"></tbody>
+                    </table>
                 </div>
             </div>
         </div>
@@ -408,7 +460,7 @@
                     <div class="flex flex-wrap gap-2">
                         <input type="file" id="importExcel" accept=".xlsx, .xls" class="hidden" onchange="window.importExcelGeneral(event)">
                         <label for="importExcel" class="cursor-pointer bg-white border border-slate-200 px-4 py-2 text-[10px] font-black text-emerald-600 hover:bg-emerald-50 rounded-xl transition-all flex items-center gap-2 uppercase">
-                            <i data-lucide="file-spreadsheet"></i> Impor Stok / PR / SAR
+                            <i data-lucide="file-spreadsheet"></i> Impor File XLSX
                         </label>
                     </div>
                 </div>
@@ -434,27 +486,7 @@
             <div id="issue-grid-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"></div>
         </div>
 
-        <!-- VIEW: LOAN -->
-        <div id="view-loan" class="view-section">
-            <h2 class="text-xs font-black text-slate-400 uppercase mb-8 tracking-widest text-center">Peminjaman Berjalan</h2>
-            <div class="premium-card overflow-hidden">
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left text-xs">
-                        <thead class="bg-slate-50 font-black border-b text-slate-500 uppercase">
-                            <tr>
-                                <th class="p-6">Peminjam / Catatan</th>
-                                <th class="p-6">Material</th>
-                                <th class="p-6 text-center">Jumlah</th>
-                                <th class="p-6 text-right">Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody id="loan-table-body" class="divide-y font-bold text-slate-700"></tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-
-        <!-- VIEW: BUDGET (Valuasi) -->
+        <!-- VIEW: BUDGET -->
         <div id="view-budget" class="view-section">
             <h2 class="text-xs font-black text-slate-400 uppercase mb-8 tracking-widest text-center">Valuasi Aset Workshop</h2>
             
@@ -546,7 +578,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, deleteDoc, doc, updateDoc, onSnapshot, getDocs, writeBatch, query, where } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, deleteDoc, doc, updateDoc, onSnapshot, getDocs, writeBatch, query, where, enableIndexedDbPersistence } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'inventaris-pelindo-t2';
         
@@ -590,6 +622,7 @@
             return 'MECHANICAL';
         };
 
+        // --- LOGIKA IMPOR FILE ---
         window.importExcelGeneral = (e) => {
             if (!window.authReady) { window.showToast("MENUNGGU AUTH...", true); return; }
             const f = e.target.files[0]; 
@@ -600,10 +633,10 @@
                 try {
                     const wb = XLSX.read(new Uint8Array(ev.target.result), {type:'array'});
                     const ws = wb.Sheets[wb.SheetNames[0]];
-                    const dataArr = XLSX.utils.sheet_to_json(ws, { header: 1 });
+                    const dataArr = XLSX.utils.sheet_to_json(ws, { header: 1, defval: "" });
                     
                     let headerIndex = -1;
-                    for(let i=0; i<dataArr.length; i++) {
+                    for(let i=0; i<Math.min(dataArr.length, 50); i++) {
                         const row = dataArr[i];
                         if (row && row.some(cell => {
                             const c = String(cell).toUpperCase();
@@ -624,13 +657,13 @@
                     
                     let count = 0;
                     for(const rowArr of rows) {
-                        if (!rowArr || rowArr.length === 0) continue;
+                        if (!rowArr || rowArr.every(cell => String(cell).trim() === "")) continue;
 
                         const rowObj = {};
                         headers.forEach((h, idx) => rowObj[h] = rowArr[idx]);
 
                         let textRaw = rowObj['SHORT TEXT'] || rowObj['SERVICE DESCRIPTION'] || rowObj['NAMA BARANG'] || rowObj['DESCRIPTION'] || rowObj['NAMA'] || rowObj['NAMA MATERIAL'] || "";
-                        if (String(textRaw).trim() === "") continue;
+                        if (String(textRaw).trim() === "" || String(textRaw).toUpperCase().includes("NAMA BARANG")) continue;
 
                         let finalName = "";
                         let finalType = "";
@@ -653,7 +686,9 @@
                         if (qty <= 0) continue;
 
                         let unit = rowObj['SAT'] || rowObj['UNIT OF MEASURE'] || rowObj['UNIT'] || rowObj['SATUAN'] || 'PCS';
-                        let price = window.cleanNum(rowObj['HARGA SATUAN'] || rowObj['VALUATION PRICE'] || rowObj['NET PRICE'] || rowObj['PRICE'] || rowObj['RATE']);
+                        if (String(unit).toUpperCase() === 'EA') unit = 'PCS';
+
+                        let price = window.cleanNum(rowObj['HARGA SATUAN'] || rowObj['VALUATION PRICE'] || rowObj['NET PRICE'] || rowObj['PRICE'] || rowObj['RATE'] || rowObj['HARGA SATUAN (RP)']);
                         
                         let category = detectCategory(rowObj, finalName);
 
@@ -667,11 +702,12 @@
                             status: 'MASUK', 
                             subStatus: 'IMPOR', 
                             createdAt: Date.now(),
+                            dateOnly: new Date().toISOString().split('T')[0], // For filtering
                             timestamp: new Date().toLocaleString('id-ID', {day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit'})
                         });
                         count++;
                     }
-                    window.showToast(`${count} DATA DIIMPOR`);
+                    window.showToast(`${count} DATA BERHASIL DIIMPOR`);
                     e.target.value = ''; 
                 } catch (err) {
                     window.showToast("GAGAL IMPOR", true);
@@ -693,27 +729,23 @@
             const grandTotal = Object.values(valCats).reduce((a, b) => a + b, 0);
 
             // Dashboard Updates
-            const lowStockCount = stock.filter(s => s.q < 5).length;
-            const emptyStockCount = stock.filter(s => s.q <= 0).length;
+            const lowOrEmptyCount = stock.filter(s => s.q < 5).length;
             const activeLoanCount = inventory.filter(i => i.subStatus === 'PEMINJAMAN').length;
 
             if(document.getElementById('count-total-items')) document.getElementById('count-total-items').innerText = stock.length;
-            if(document.getElementById('count-low-stock')) document.getElementById('count-low-stock').innerText = lowStockCount;
-            if(document.getElementById('count-empty-stock')) document.getElementById('count-empty-stock').innerText = activeLoanCount;
+            if(document.getElementById('count-low-stock')) document.getElementById('count-low-stock').innerText = lowOrEmptyCount;
+            if(document.getElementById('count-active-loans')) document.getElementById('count-active-loans').innerText = activeLoanCount;
             if(document.getElementById('total-asset-value-dash')) document.getElementById('total-asset-value-dash').innerText = `Rp ${grandTotal.toLocaleString('id-ID')}`;
             if(document.getElementById('grand-total-budget')) document.getElementById('grand-total-budget').innerText = `RP ${grandTotal.toLocaleString('id-ID')}`;
             if(document.getElementById('val-mech')) document.getElementById('val-mech').innerText = `Rp ${valCats.MECHANICAL.toLocaleString('id-ID')}`;
             if(document.getElementById('val-elec')) document.getElementById('val-elec').innerText = `Rp ${valCats.ELECTRICAL.toLocaleString('id-ID')}`;
             if(document.getElementById('val-plum')) document.getElementById('val-plum').innerText = `Rp ${valCats.PLUMBING.toLocaleString('id-ID')}`;
 
-            // Stock Filter UI
+            // Stock Filter indicator
             const filterIndicator = document.getElementById('stock-filter-indicator');
             if (filterIndicator) {
-                if (window.stockFilterMode === 'low') {
-                    filterIndicator.classList.remove('hidden');
-                } else {
-                    filterIndicator.classList.add('hidden');
-                }
+                if (window.stockFilterMode === 'low') { filterIndicator.classList.remove('hidden'); } 
+                else { filterIndicator.classList.add('hidden'); }
             }
 
             // Chart
@@ -727,28 +759,47 @@
                 });
             }
 
-            // Recent Logs
+            // Logs Rendering (Dashboard & Full History)
             const rec = document.getElementById('recent-logs-container'), full = document.getElementById('full-log-container');
             if (rec && full) {
                 rec.innerHTML = ''; full.innerHTML = '';
                 inventory.forEach((i, idx) => {
                     const st = window.getCategoryStyle(i.category);
+                    
+                    // Detail line logic
+                    let detailLine = `${i.qty} ${i.unit} • ${i.subStatus}`;
+                    if (i.subStatus === 'PEMINJAMAN') {
+                        detailLine += ` • PIC: ${i.picBorrow || '-'} • ${i.notesBorrow || '-'}`;
+                    } else if (i.subStatus === 'PROYEK') {
+                        detailLine += ` • LOKASI: ${i.picInstall || '-'} • ${i.notesInstall || '-'}`;
+                    } else {
+                        detailLine += ` • ${i.timestamp}`;
+                    }
+
                     const card = `<div class="premium-card p-4 border-l-4 ${i.status === 'MASUK' ? 'border-emerald-500' : 'border-red-500'} bg-white flex justify-between items-center text-[9px] animate-fadeIn">
                         <div class="flex items-center gap-3 truncate pr-4">
                             <div class="p-2 rounded-lg ${st.bg} ${st.text}"><i data-lucide="${st.icon}" class="w-3.5 h-3.5"></i></div>
                             <div class="truncate">
                                 <p class="font-black text-slate-800">${i.name}</p>
-                                <p class="text-slate-400 font-bold">${i.qty} ${i.unit} • ${i.subStatus} • ${i.timestamp}</p>
+                                <p class="text-slate-400 font-bold">${detailLine}</p>
                             </div>
                         </div>
                         <button onclick="window.deleteSingleLog('${i.id}')" class="text-slate-200 hover:text-red-500 transition-colors"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
                     </div>`;
+                    
                     if (idx < 5) rec.innerHTML += card;
-                    if (!searchQuery || i.name.includes(searchQuery.toUpperCase())) full.innerHTML += card;
+                    
+                    // Filter for Full History View
+                    const searchMatch = !searchQuery || i.name.includes(searchQuery.toUpperCase());
+                    const dateMatch = !window.historyDateFilter || i.dateOnly === window.historyDateFilter;
+                    
+                    if (searchMatch && dateMatch) {
+                        full.innerHTML += card;
+                    }
                 });
             }
 
-            // Square Stock Grid (Filtered)
+            // Stock Grid Rendering
             ['MECHANICAL', 'ELECTRICAL', 'PLUMBING'].forEach(c => {
                 const list = document.getElementById(`stock-list-${c}`);
                 const items = stock.filter(s => s.c === c && (window.stockFilterMode === 'all' || s.q < 5));
@@ -791,7 +842,7 @@
                 }
             });
 
-            // Issue Cards
+            // Issue Grid
             const iGrid = document.getElementById('issue-grid-container');
             if(iGrid) {
                 iGrid.innerHTML = '';
@@ -852,13 +903,13 @@
                 auth = getAuth(app); db = getFirestore(app);
                 
                 const initAuth = async () => {
-                    if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) { 
-                        await signInWithCustomToken(auth, __initial_auth_token); 
-                    } else { 
-                        await signInAnonymously(auth); 
-                    }
+                    if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) { await signInWithCustomToken(auth, __initial_auth_token); } 
+                    else { await signInAnonymously(auth); }
                 };
                 await initAuth();
+
+                try { await enableIndexedDbPersistence(db); } catch (err) { console.warn("Persistence Error:", err.code); }
+
                 onAuthStateChanged(auth, (u) => {
                     user = u;
                     if(u) {
@@ -868,8 +919,6 @@
                             inventory.sort((a,b) => (b.createdAt || 0) - (a.createdAt || 0));
                             window.renderAll();
                             window.hideLoader();
-                        }, (err) => {
-                            console.error("Firestore Error:", err);
                         });
                     }
                 });
@@ -877,6 +926,17 @@
         };
 
         // --- DATABASE OPERATIONS ---
+        window.handleDateFilter = (val) => {
+            window.historyDateFilter = val;
+            window.renderAll();
+        };
+
+        window.resetHistoryFilter = () => {
+            window.historyDateFilter = '';
+            document.getElementById('historyDateInput').value = '';
+            window.renderAll();
+        };
+
         window.updateCategory = async (name, type, newCat) => {
             if (!user) return;
             window.openConfirmModal("Ganti Kategori", `Ubah kategori material ini menjadi ${newCat}?`, "folder-input", "bg-blue-50 text-blue-600", async () => {
@@ -916,15 +976,14 @@
 
         window.adjustStock = async (name, type, cat, unit, price, change, currentQty) => {
             if (!user) return;
-            if (change < 0 && currentQty <= 0) {
-                window.showToast("STOK HABIS!", true);
-                return;
-            }
+            if (change < 0 && currentQty <= 0) { window.showToast("STOK HABIS!", true); return; }
             try {
                 await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'inventory_logs'), {
                     name, type, category: cat, unit, price: window.cleanNum(price), qty: 1,
                     status: change > 0 ? 'MASUK' : 'KELUAR', subStatus: 'ADJUST',
-                    createdAt: Date.now(), timestamp: new Date().toLocaleString('id-ID', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })
+                    createdAt: Date.now(),
+                    dateOnly: new Date().toISOString().split('T')[0],
+                    timestamp: new Date().toLocaleString('id-ID', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })
                 });
             } catch(e) { window.showToast("GAGAL", true); }
         };
@@ -937,6 +996,7 @@
                 try {
                     await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'inventory_logs'), {
                         ...item, status: 'MASUK', subStatus: 'PENGEMBALIAN', createdAt: Date.now(),
+                        dateOnly: new Date().toISOString().split('T')[0],
                         timestamp: new Date().toLocaleString('id-ID', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })
                     });
                     await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'inventory_logs', id), { subStatus: 'SELESAI' });
@@ -1000,14 +1060,18 @@
             e.preventDefault();
             if (!window.authReady) return;
             try {
+                let unit = document.getElementById('unit').value;
+                if (unit === 'EA') unit = 'PCS';
+
                 await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'inventory_logs'), {
                     category: document.getElementById('category').value,
                     name: document.getElementById('itemName').value.toUpperCase().trim(),
                     type: document.getElementById('itemType').value.toUpperCase() || "-",
                     qty: Number(document.getElementById('qty').value),
-                    unit: document.getElementById('unit').value,
+                    unit: unit,
                     price: Number(document.getElementById('price').value) || 0,
                     status: 'MASUK', subStatus: 'INPUT', createdAt: Date.now(),
+                    dateOnly: new Date().toISOString().split('T')[0],
                     timestamp: new Date().toLocaleString('id-ID', {day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit'})
                 });
                 e.target.reset(); window.showToast("DISIMPAN"); window.switchView('dashboard');
@@ -1017,14 +1081,9 @@
         document.getElementById('issueFormAction').onsubmit = async (e) => {
             e.preventDefault();
             if (!window.authReady) return;
-            
             const reqQty = Number(document.getElementById('modalQty').value);
             const curStock = Number(document.getElementById('modalCurrentStock').value);
-            
-            if (reqQty > curStock) {
-                window.showToast("STOK TIDAK CUKUP!", true);
-                return;
-            }
+            if (reqQty > curStock) { window.showToast("STOK TIDAK CUKUP!", true); return; }
 
             const sub = document.getElementById('modalSubStatus').value;
             const data = {
@@ -1042,22 +1101,14 @@
                 picInstall: document.getElementById('modalPicInstall').value.toUpperCase() || "",
                 notesInstall: document.getElementById('modalNotesInstall').value.toUpperCase() || "",
                 createdAt: Date.now(),
+                dateOnly: new Date().toISOString().split('T')[0],
                 timestamp: new Date().toLocaleString('id-ID', {day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit'})
             };
 
             try {
                 await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'inventory_logs'), data);
-                window.closeIssueModal(); 
-                if (reqQty >= curStock) {
-                    window.showToast("MATERIAL SEKARANG KOSONG!", true);
-                } else {
-                    window.showToast("DICATAT");
-                }
-                window.switchView('dashboard');
-            } catch (err) {
-                console.error(err);
-                window.showToast("GAGAL MEMPROSES", true);
-            }
+                window.closeIssueModal(); window.showToast(reqQty >= curStock ? "STOK KOSONG!" : "DICATAT"); window.switchView('dashboard');
+            } catch (err) { window.showToast("GAGAL", true); }
         };
 
         init();
